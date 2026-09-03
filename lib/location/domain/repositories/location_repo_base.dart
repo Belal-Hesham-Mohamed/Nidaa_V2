@@ -1,0 +1,7 @@
+import 'package:dartz/dartz.dart';
+import 'package:nidaa_v2/core/error/failuer.dart';
+import 'package:nidaa_v2/location/domain/entities/location.dart';
+
+abstract class LocationRepoBase {
+Future <Either<Failuer, Location>> getLocation() ;
+}
