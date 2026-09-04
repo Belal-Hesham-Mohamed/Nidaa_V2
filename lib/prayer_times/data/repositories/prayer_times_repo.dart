@@ -13,6 +13,23 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
   PrayerTimesRepo(this.remoteDataSource, this.localDataSource);
 
   @override
+  Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes() async {
+    try {
+      final savedPrayerTimes = await localDataSource.getSavedPrayerTimes();
+
+      if (savedPrayerTimes != null) {
+        return Right(_toEntity(savedPrayerTimes));
+      }
+
+      return Left(Failure('No saved prayer times'));
+    } catch (_) {
+      return Left(
+        Failure('Something went wrong while getting saved prayer times'),
+      );
+    }
+  }
+
+  @override
   Future<Either<Failure, PrayerTimes>> getTimingsByCoordinates({
     required double latitude,
     required double longitude,

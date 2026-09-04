@@ -9,6 +9,7 @@ import 'package:nidaa_v2/location/current_location/data/models/location_model.da
 import 'package:nidaa_v2/location/current_location/data/repositories/location_repo.dart';
 import 'package:nidaa_v2/location/current_location/domain/repositories/location_repo_base.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_usecase.dart';
+import 'package:nidaa_v2/location/current_location/domain/usecase/get_saved_current_location_usecase.dart';
 import 'package:nidaa_v2/location/manual_location/data/datasource/manual_location_datasource.dart';
 import 'package:nidaa_v2/location/manual_location/data/datasource/manual_location_local_datasource.dart';
 import 'package:nidaa_v2/location/manual_location/data/models/manual_location_model.dart';
@@ -22,6 +23,7 @@ import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 import 'package:nidaa_v2/prayer_times/data/repositories/prayer_times_repo.dart';
 import 'package:nidaa_v2/prayer_times/domain/repositories/prayer_times_repo_base.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.dart';
+import 'package:nidaa_v2/prayer_times/domain/usecase/get_saved_prayer_times_usecase.dart';
 
 final sl = GetIt.instance;
 
@@ -65,6 +67,10 @@ void setupServiceLocator() {
   // Use case
   sl.registerLazySingleton<GetLocationUsecase>(
     () => GetLocationUsecase(sl<LocationRepoBase>()),
+  );
+
+  sl.registerLazySingleton<GetSavedCurrentLocationUsecase>(
+    () => GetSavedCurrentLocationUsecase(sl<LocationRepoBase>()),
   );
 
   // Manual location datasource
@@ -116,5 +122,9 @@ void setupServiceLocator() {
   // Prayer times use case
   sl.registerLazySingleton<GetPrayerTimesUsecase>(
     () => GetPrayerTimesUsecase(sl<PrayerTimesRepoBase>()),
+  );
+
+  sl.registerLazySingleton<GetSavedPrayerTimesUsecase>(
+    () => GetSavedPrayerTimesUsecase(sl<PrayerTimesRepoBase>()),
   );
 }

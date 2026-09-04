@@ -6,6 +6,7 @@ class LocationException implements Exception {
   @override
   String toString() => message;
 }
+
 class LocationServiceDisabledException implements Exception {}
 
 class LocationPermissionDeniedException implements Exception {}

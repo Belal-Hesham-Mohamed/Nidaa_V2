@@ -4,4 +4,6 @@ import 'package:nidaa_v2/location/current_location/domain/entities/location.dart
 
 abstract class LocationRepoBase {
   Future<Either<Failure, Location>> getLocation();
+
+  Future<Either<Failure, Location>> getSavedLocation();
 }

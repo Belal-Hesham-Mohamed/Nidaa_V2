@@ -6,9 +6,8 @@ abstract class LocationLocalDataSource {
   Future<LocationModel?> getSavedLocation();
   Future<void> deleteLocation();
 }
-class LocationLocalDataSourceImpl
-    implements LocationLocalDataSource {
 
+class LocationLocalDataSourceImpl implements LocationLocalDataSource {
   final Box<LocationModel> box;
 
   LocationLocalDataSourceImpl(this.box);
@@ -28,4 +27,3 @@ class LocationLocalDataSourceImpl
     await box.delete('location');
   }
 }
-

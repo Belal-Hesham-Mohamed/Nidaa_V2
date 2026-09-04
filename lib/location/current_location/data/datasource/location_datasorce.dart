@@ -1,6 +1,7 @@
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:nidaa_v2/location/current_location/data/exception/exception.dart' hide LocationServiceDisabledException;
+import 'package:nidaa_v2/location/current_location/data/exception/exception.dart'
+    hide LocationServiceDisabledException;
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
 
 import 'package:geolocator/geolocator.dart' as geo;
