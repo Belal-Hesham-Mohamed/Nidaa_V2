@@ -8,31 +8,38 @@ import 'package:nidaa_v2/location/data/models/location_model.dart';
 import 'package:nidaa_v2/location/data/repositories/location_repo.dart';
 import 'package:nidaa_v2/location/domain/repositories/location_repo_base.dart';
 import 'package:nidaa_v2/location/domain/usecase/get_location_usecase.dart';
+import 'package:nidaa_v2/manual_location/data/datasource/manual_location_datasource.dart';
+import 'package:nidaa_v2/manual_location/data/datasource/manual_location_local_datasource.dart';
+import 'package:nidaa_v2/manual_location/data/models/manual_location_model.dart';
+import 'package:nidaa_v2/manual_location/data/repositories/manual_location_repo.dart';
+import 'package:nidaa_v2/manual_location/domain/repositories/manual_location_repo_base.dart';
+import 'package:nidaa_v2/manual_location/domain/usecase/get_manual_location_usecase.dart';
+import 'package:nidaa_v2/manual_location/domain/usecase/get_saved_manual_location_usecase.dart';
 
 final sl = GetIt.instance;
 
 void setupServiceLocator() {
-  // Internet connection
-  sl.registerLazySingleton<InternetConnection>(
-    () => InternetConnection(),
+  sl.registerSingleton<Box<LocationModel>>(
+    Hive.box<LocationModel>('locationBox'),
   );
 
+  sl.registerSingleton<Box<ManualLocationModel>>(
+    Hive.box<ManualLocationModel>('manualLocationBox'),
+  );
+
+  // Internet connection
+  sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
+
   sl.registerLazySingleton<NetworkInfo>(
-    () => NetworkInfoImpl(
-      sl<InternetConnection>(),
-    ),
+    () => NetworkInfoImpl(sl<InternetConnection>()),
   );
 
   // Location datasource
-  sl.registerLazySingleton<LocationDatasource>(
-    () => LocationDatasource(),
-  );
+  sl.registerLazySingleton<LocationDatasource>(() => LocationDatasource());
 
   // Local location datasource
   sl.registerLazySingleton<LocationLocalDataSource>(
-    () => LocationLocalDataSourceImpl(
-      sl<Box<LocationModel>>(),
-    ),
+    () => LocationLocalDataSourceImpl(sl<Box<LocationModel>>()),
   );
 
   // Repository
@@ -46,8 +53,33 @@ void setupServiceLocator() {
 
   // Use case
   sl.registerLazySingleton<GetLocationUsecase>(
-    () => GetLocationUsecase(
-      sl<LocationRepoBase>(),
+    () => GetLocationUsecase(sl<LocationRepoBase>()),
+  );
+
+  // Manual location datasource
+  sl.registerLazySingleton<ManualLocationDatasource>(
+    () => ManualLocationDatasource(),
+  );
+
+  // Local manual location datasource
+  sl.registerLazySingleton<ManualLocationLocalDataSource>(
+    () => ManualLocationLocalDataSourceImpl(sl<Box<ManualLocationModel>>()),
+  );
+
+  // Manual location repository
+  sl.registerLazySingleton<ManualLocationRepoBase>(
+    () => ManualLocationRepo(
+      sl<ManualLocationDatasource>(),
+      sl<ManualLocationLocalDataSource>(),
     ),
+  );
+
+  // Manual location use cases
+  sl.registerLazySingleton<GetManualLocationUsecase>(
+    () => GetManualLocationUsecase(sl<ManualLocationRepoBase>()),
+  );
+
+  sl.registerLazySingleton<GetSavedManualLocationUsecase>(
+    () => GetSavedManualLocationUsecase(sl<ManualLocationRepoBase>()),
   );
 }

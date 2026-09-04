@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/location/data/models/location_model.dart';
+import 'package:nidaa_v2/manual_location/data/models/manual_location_model.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,8 +10,10 @@ void main() async {
   await Hive.initFlutter();
 
   Hive.registerAdapter(LocationModelAdapter());
+  Hive.registerAdapter(ManualLocationModelAdapter());
 
   await Hive.openBox<LocationModel>('locationBox');
+  await Hive.openBox<ManualLocationModel>('manualLocationBox');
   setupServiceLocator();
 
   runApp(const MyApp());
