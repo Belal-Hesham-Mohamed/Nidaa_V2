@@ -1,3 +1,5 @@
-class Failuer {
-  Failuer(String message);
+class Failure {
+  final String message;
+
+  const Failure(this.message);
 }
