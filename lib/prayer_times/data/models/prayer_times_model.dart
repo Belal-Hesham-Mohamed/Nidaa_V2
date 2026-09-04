@@ -21,15 +21,9 @@ class PrayerTimesModel {
 
   factory PrayerTimesModel.fromJson(Map<String, dynamic> json) {
     return PrayerTimesModel(
-      timings: TimingsModel.fromJson(
-        json['timings'] as Map<String, dynamic>,
-      ),
-      date: DateModel.fromJson(
-        json['date'] as Map<String, dynamic>,
-      ),
-      night: NightModel.fromJson(
-        json['timings'] as Map<String, dynamic>,
-      ),
+      timings: TimingsModel.fromJson(json['timings'] as Map<String, dynamic>),
+      date: DateModel.fromJson(json['date'] as Map<String, dynamic>),
+      night: NightModel.fromJson(json['timings'] as Map<String, dynamic>),
     );
   }
 }
@@ -77,10 +71,7 @@ class TimingsModel {
 
 @HiveType(typeId: 4)
 class DateModel {
-  DateModel({
-    required this.gregorian,
-    required this.hijri,
-  });
+  DateModel({required this.gregorian, required this.hijri});
 
   @HiveField(0)
   final String gregorian;
@@ -94,8 +85,7 @@ class DateModel {
 
     return DateModel(
       gregorian: json['readable'] as String,
-      hijri:
-          '${hijri['date']} ${hijriMonth['en']} ${hijri['year']}',
+      hijri: '${hijri['date']} ${hijriMonth['en']} ${hijri['year']}',
     );
   }
 }
