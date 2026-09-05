@@ -102,7 +102,7 @@ void setupServiceLocator() {
 
   // Local prayer times datasource
   sl.registerLazySingleton<PrayerTimesLocalDataSource>(
-    () => PrayerTimesLocalDataSourceImpl(sl<Box<PrayerTimesModel>>()),
+    () => PrayerTimesLocalDataSourceImpl(sl<Box<List<PrayerTimesModel>>>()),
   );
 
   // Prayer times datasource

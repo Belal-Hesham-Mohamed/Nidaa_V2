@@ -10,21 +10,31 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
   final PrayerTimesRemoteDataSource remoteDataSource;
   final PrayerTimesLocalDataSource localDataSource;
 
-  PrayerTimesRepo(this.remoteDataSource, this.localDataSource);
+  PrayerTimesRepo(
+    this.remoteDataSource,
+    this.localDataSource,
+  );
 
   @override
-  Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes() async {
+  Future<Either<Failure, List<PrayerTimes>>> getSavedPrayerTimes() async {
     try {
-      final savedPrayerTimes = await localDataSource.getSavedPrayerTimes();
+      final savedPrayerTimes =
+          await localDataSource.getSavedPrayerTimes();
 
-      if (savedPrayerTimes != null) {
-        return Right(_toEntity(savedPrayerTimes));
+      if (savedPrayerTimes != null && savedPrayerTimes.isNotEmpty) {
+        return Right(
+          savedPrayerTimes.map(_toEntity).toList(),
+        );
       }
 
-      return Left(Failure('No saved prayer times'));
+      return Left(
+        Failure('No saved prayer times'),
+      );
     } catch (_) {
       return Left(
-        Failure('Something went wrong while getting saved prayer times'),
+        Failure(
+          'Something went wrong while getting saved prayer times',
+        ),
       );
     }
   }
@@ -36,35 +46,55 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     required String date,
   }) async {
     try {
-      final prayerTimes = await remoteDataSource.getTimingsByCoordinates(
+      final prayerTimes =
+          await remoteDataSource.getTimingsByCoordinates(
         latitude: latitude,
         longitude: longitude,
         date: date,
       );
-      await localDataSource.savePrayerTimes(prayerTimes);
-      return Right(_toEntity(prayerTimes));
+
+      return Right(
+        _toEntity(prayerTimes),
+      );
     } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+      return Left(
+        Failure(
+          'Something went wrong while getting prayer times',
+        ),
+      );
     }
   }
 
   @override
-  Future<Either<Failure, List<PrayerTimes>>> getCalendarByCoordinates({
+  Future<Either<Failure, List<PrayerTimes>>>
+      getCalendarByCoordinates({
     required double latitude,
     required double longitude,
     required int month,
     required int year,
   }) async {
     try {
-      final prayerTimes = await remoteDataSource.getCalendarByCoordinates(
+      final prayerTimes =
+          await remoteDataSource.getCalendarByCoordinates(
         latitude: latitude,
         longitude: longitude,
         month: month,
         year: year,
       );
-      return Right(prayerTimes.map(_toEntity).toList());
+
+      await localDataSource.savePrayerTimes(
+        prayerTimes,
+      );
+
+      return Right(
+        prayerTimes.map(_toEntity).toList(),
+      );
     } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+      return Left(
+        Failure(
+          'Something went wrong while getting prayer times',
+        ),
+      );
     }
   }
 
@@ -75,39 +105,61 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     required String date,
   }) async {
     try {
-      final prayerTimes = await remoteDataSource.getTimingsByCity(
+      final prayerTimes =
+          await remoteDataSource.getTimingsByCity(
         city: city,
         country: country,
         date: date,
       );
-      await localDataSource.savePrayerTimes(prayerTimes);
-      return Right(_toEntity(prayerTimes));
+
+      return Right(
+        _toEntity(prayerTimes),
+      );
     } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+      return Left(
+        Failure(
+          'Something went wrong while getting prayer times',
+        ),
+      );
     }
   }
 
   @override
-  Future<Either<Failure, List<PrayerTimes>>> getCalendarByCity({
+  Future<Either<Failure, List<PrayerTimes>>>
+      getCalendarByCity({
     required String city,
     required String country,
     required int month,
     required int year,
   }) async {
     try {
-      final prayerTimes = await remoteDataSource.getCalendarByCity(
+      final prayerTimes =
+          await remoteDataSource.getCalendarByCity(
         city: city,
         country: country,
         month: month,
         year: year,
       );
-      return Right(prayerTimes.map(_toEntity).toList());
+
+      await localDataSource.savePrayerTimes(
+        prayerTimes,
+      );
+
+      return Right(
+        prayerTimes.map(_toEntity).toList(),
+      );
     } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+      return Left(
+        Failure(
+          'Something went wrong while getting prayer times',
+        ),
+      );
     }
   }
 
-  PrayerTimes _toEntity(PrayerTimesModel model) {
+  PrayerTimes _toEntity(
+    PrayerTimesModel model,
+  ) {
     return PrayerTimes(
       timings: Timings(
         fajr: model.timings.fajr,
@@ -117,7 +169,10 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
         maghrib: model.timings.maghrib,
         isha: model.timings.isha,
       ),
-      date: Date(gregorian: model.date.gregorian, hijri: model.date.hijri),
+      date: Date(
+        gregorian: model.date.gregorian,
+        hijri: model.date.hijri,
+      ),
       night: Night(
         midnight: model.night.midnight,
         firstThird: model.night.firstThird,
