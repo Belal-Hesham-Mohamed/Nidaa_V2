@@ -5,6 +5,9 @@ abstract class PrayerTimesLocalDataSource {
 Future<void> savePrayerTimes(List<PrayerTimesModel> prayerTimes);
 Future<List<PrayerTimesModel>?> getSavedPrayerTimes();
   Future<void> deletePrayerTimes();
+  Future<PrayerTimesModel?> getPrayerTimesForDate({
+  required String date,
+});
 }
 
 class PrayerTimesLocalDataSourceImpl implements PrayerTimesLocalDataSource {
@@ -28,4 +31,24 @@ class PrayerTimesLocalDataSourceImpl implements PrayerTimesLocalDataSource {
   Future<void> deletePrayerTimes() async {
     await box.delete('prayer_times');
   }
+
+  
+@override
+Future<PrayerTimesModel?> getPrayerTimesForDate({
+  required String date,
+}) async {
+  final savedPrayerTimes = await box.get('prayer_times');
+
+  if (savedPrayerTimes == null) {
+    return null;
+  }
+
+  for (final prayerTime in savedPrayerTimes) {
+    if (prayerTime.date.gregorian == date) {
+      return prayerTime;
+    }
+  }
+
+  return null;
+}
 }

@@ -14,8 +14,16 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     this.remoteDataSource,
     this.localDataSource,
   );
+  List<DateTime> _getRequiredDates(DateTime today) {
+  return List.generate(
+    15,
+    (index) => today.subtract(
+      Duration(days: 7 - index),
+    ),
+  );
+}
 
-  @override
+  
  @override
 Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
   required String date,

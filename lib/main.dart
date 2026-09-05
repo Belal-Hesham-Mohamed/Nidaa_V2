@@ -21,8 +21,7 @@ void main() async {
 
   await Hive.openBox<LocationModel>('locationBox');
   await Hive.openBox<ManualLocationModel>('manualLocationBox');
-  await Hive.openBox<PrayerTimesModel>('prayerTimesBox');
-  setupServiceLocator();
+await Hive.openBox<List<PrayerTimesModel>>('prayerTimesBox');  setupServiceLocator();
 
   runApp(const MyApp());
 }
