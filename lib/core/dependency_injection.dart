@@ -37,9 +37,9 @@ void setupServiceLocator() {
     Hive.box<ManualLocationModel>('manualLocationBox'),
   );
 
-  sl.registerSingleton<Box<PrayerTimesModel>>(
-    Hive.box<PrayerTimesModel>('prayerTimesBox'),
-  );
+ sl.registerSingleton<Box<List<PrayerTimesModel>>>(
+  Hive.box<List<PrayerTimesModel>>('prayerTimesBox'),
+);
 
   // Internet connection
   sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
