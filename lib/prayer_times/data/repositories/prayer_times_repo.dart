@@ -16,29 +16,42 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
   );
 
   @override
-  Future<Either<Failure, List<PrayerTimes>>> getSavedPrayerTimes() async {
-    try {
-      final savedPrayerTimes =
-          await localDataSource.getSavedPrayerTimes();
+ @override
+Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
+  required String date,
+}) async {
+  try {
+    final savedPrayerTimes =
+        await localDataSource.getSavedPrayerTimes();
 
-      if (savedPrayerTimes != null && savedPrayerTimes.isNotEmpty) {
-        return Right(
-          savedPrayerTimes.map(_toEntity).toList(),
-        );
-      }
-
+    if (savedPrayerTimes == null ||
+        savedPrayerTimes.isEmpty) {
       return Left(
         Failure('No saved prayer times'),
       );
-    } catch (_) {
+    }
+
+    final savedDay = savedPrayerTimes.where(
+      (prayerTime) => prayerTime.date.gregorian == date,
+    );
+
+    if (savedDay.isEmpty) {
       return Left(
-        Failure(
-          'Something went wrong while getting saved prayer times',
-        ),
+        Failure('No saved prayer times for this date'),
       );
     }
-  }
 
+    return Right(
+      _toEntity(savedDay.first),
+    );
+  } catch (_) {
+    return Left(
+      Failure(
+        'Something went wrong while getting saved prayer times',
+      ),
+    );
+  }
+}
   @override
   Future<Either<Failure, PrayerTimes>> getTimingsByCoordinates({
     required double latitude,

@@ -3,7 +3,9 @@ import 'package:nidaa_v2/core/error/failuer.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
 
 abstract class PrayerTimesRepoBase {
-  Future<Either<Failure, List<PrayerTimes>>> getSavedPrayerTimes();
+Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
+  required String date,
+});
 
   Future<Either<Failure, PrayerTimes>> getTimingsByCoordinates({
     required double latitude,

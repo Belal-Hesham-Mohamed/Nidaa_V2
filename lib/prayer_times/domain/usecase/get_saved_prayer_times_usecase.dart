@@ -8,7 +8,11 @@ class GetSavedPrayerTimesUsecase {
 
   GetSavedPrayerTimesUsecase(this._prayerTimesRepository);
 
-  Future<Either<Failure,List <PrayerTimes>>> call() async {
-    return await _prayerTimesRepository.getSavedPrayerTimes();
-  }
+Future<Either<Failure, PrayerTimes>> call({
+  required String date,
+}) async {
+  return await _prayerTimesRepository.getSavedPrayerTimes(
+    date: date,
+  );
+}
 }
