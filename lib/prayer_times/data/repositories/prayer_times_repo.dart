@@ -22,7 +22,140 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     ),
   );
 }
+Set<String> _getRequiredMonths(DateTime today) {
+  final requiredDates = _getRequiredDates(today);
 
+  return requiredDates
+      .map((date) => '${date.year}-${date.month}')
+      .toSet();
+}
+Set<String> _getCachedMonths(
+  List<PrayerTimesModel> savedPrayerTimes,
+) {
+  return savedPrayerTimes.map((prayerTime) {
+    final parts = prayerTime.date.gregorian.split('-');
+
+    final month = int.parse(parts[1]);
+    final year = int.parse(parts[2]);
+
+    return '$year-$month';
+  }).toSet();
+}
+Set<String> _getMissingMonths(
+  Set<String> requiredMonths,
+  Set<String> cachedMonths,
+) {
+  return requiredMonths.difference(cachedMonths);
+}
+Map<String, int> _parseMonthKey(String monthKey) {
+  final parts = monthKey.split('-');
+
+  return {
+    'year': int.parse(parts[0]),
+    'month': int.parse(parts[1]),
+  };
+}
+Future<List<PrayerTimesModel>> _fetchMissingMonths(
+  Set<String> missingMonths, {
+  required double latitude,
+  required double longitude,
+}) async {
+  final allPrayerTimes = <PrayerTimesModel>[];
+
+  for (final monthKey in missingMonths) {
+    final monthData = _parseMonthKey(monthKey);
+
+    final prayerTimes =
+        await remoteDataSource.getCalendarByCoordinates(
+      latitude: latitude,
+      longitude: longitude,
+      month: monthData['month']!,
+      year: monthData['year']!,
+    );
+
+    allPrayerTimes.addAll(prayerTimes);
+  }
+
+  return allPrayerTimes;
+}
+List<PrayerTimesModel> _mergePrayerTimes(
+  List<PrayerTimesModel> cachedPrayerTimes,
+  List<PrayerTimesModel> newPrayerTimes,
+) {
+  final merged = <PrayerTimesModel>[
+    ...cachedPrayerTimes,
+    ...newPrayerTimes,
+  ];
+
+  final uniquePrayerTimes = <String, PrayerTimesModel>{};
+
+  for (final prayerTime in merged) {
+    uniquePrayerTimes[prayerTime.date.gregorian] = prayerTime;
+  }
+
+  return uniquePrayerTimes.values.toList();
+}
+Future<List<PrayerTimesModel>> _fetchMissingMonthsByCity(
+  Set<String> missingMonths, {
+  required String city,
+  required String country,
+}) async {
+  final allPrayerTimes = <PrayerTimesModel>[];
+
+  for (final monthKey in missingMonths) {
+    final monthData = _parseMonthKey(monthKey);
+
+    final prayerTimes =
+        await remoteDataSource.getCalendarByCity(
+      city: city,
+      country: country,
+      month: monthData['month']!,
+      year: monthData['year']!,
+    );
+
+    allPrayerTimes.addAll(prayerTimes);
+  }
+
+  return allPrayerTimes;
+}
+Future<List<PrayerTimesModel>> _getPrayerTimesWithCacheByCoordinates({
+  required DateTime today,
+  required double latitude,
+  required double longitude,
+}) async {
+  final cachedPrayerTimes =
+      await localDataSource.getSavedPrayerTimes() ?? [];
+
+  final requiredMonths = _getRequiredMonths(today);
+
+  final cachedMonths = _getCachedMonths(cachedPrayerTimes);
+
+  final missingMonths = _getMissingMonths(
+    requiredMonths,
+    cachedMonths,
+  );
+
+  if (missingMonths.isEmpty) {
+    return cachedPrayerTimes;
+  }
+
+  final newPrayerTimes = await _fetchMissingMonths(
+    missingMonths,
+    latitude: latitude,
+    longitude: longitude,
+  );
+
+  final mergedPrayerTimes = _mergePrayerTimes(
+    cachedPrayerTimes,
+    newPrayerTimes,
+  );
+
+  await localDataSource.savePrayerTimes(
+    mergedPrayerTimes,
+  );
+
+  return mergedPrayerTimes;
+}
   
  @override
 Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
