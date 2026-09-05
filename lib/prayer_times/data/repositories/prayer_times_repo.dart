@@ -118,6 +118,28 @@ Future<List<PrayerTimesModel>> _fetchMissingMonthsByCity(
 
   return allPrayerTimes;
 }
+@override
+Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates({
+  required DateTime today,
+  required double latitude,
+  required double longitude,
+}) async {
+  try {
+    final prayerTimes = await _getPrayerTimesWithCacheByCoordinates(
+      today: today,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    return Right(
+      prayerTimes.map(_toEntity).toList(),
+    );
+  } catch (_) {
+    return Left(
+      Failure('Something went wrong while getting prayer times'),
+    );
+  }
+}
 Future<List<PrayerTimesModel>> _getPrayerTimesWithCacheByCoordinates({
   required DateTime today,
   required double latitude,

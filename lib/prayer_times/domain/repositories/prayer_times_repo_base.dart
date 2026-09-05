@@ -6,7 +6,11 @@ abstract class PrayerTimesRepoBase {
 Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
   required String date,
 });
-
+Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates({
+  required DateTime today,
+  required double latitude,
+  required double longitude,
+});
   Future<Either<Failure, PrayerTimes>> getTimingsByCoordinates({
     required double latitude,
     required double longitude,

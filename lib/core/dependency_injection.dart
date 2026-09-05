@@ -23,6 +23,7 @@ import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 import 'package:nidaa_v2/prayer_times/data/repositories/prayer_times_repo.dart';
 import 'package:nidaa_v2/prayer_times/domain/repositories/prayer_times_repo_base.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.dart';
+import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_with_cache_usecase.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_saved_prayer_times_usecase.dart';
 
 final sl = GetIt.instance;
@@ -95,7 +96,9 @@ void setupServiceLocator() {
   sl.registerLazySingleton<GetManualLocationUsecase>(
     () => GetManualLocationUsecase(sl<ManualLocationRepoBase>()),
   );
-
+sl.registerLazySingleton<GetPrayerTimesWithCacheUsecase>(
+  () => GetPrayerTimesWithCacheUsecase(sl()),
+);
   sl.registerLazySingleton<GetSavedManualLocationUsecase>(
     () => GetSavedManualLocationUsecase(sl<ManualLocationRepoBase>()),
   );
