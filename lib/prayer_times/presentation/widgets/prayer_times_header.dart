@@ -13,6 +13,20 @@ class PrayerTimesHeader extends StatelessWidget {
     required this.gregorianDate,
   });
 
+  String _getWeekday(DateTime date) {
+    const weekdays = [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ];
+
+    return weekdays[date.weekday - 1];
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark =
@@ -34,82 +48,82 @@ class PrayerTimesHeader extends StatelessWidget {
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    return Row(
-      children: [
-        // Location
-        Expanded(
-          flex: 5,
-          child: Container(
-            height: 58,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 10,
-            ),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: accentColor.withValues(
-                      alpha: 0.10,
-                    ),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.location_on_outlined,
-                    size: 19,
-                    color: accentColor,
-                  ),
-                ),
+    final weekday = _getWeekday(DateTime.now());
 
-                const SizedBox(width: 8),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(
+        14,
+        8,
+        14,
+        8,
+      ),
+      decoration: BoxDecoration(
+        color: cardColor,
+        borderRadius: BorderRadius.circular(18),
+      ),
+      child: Column(
+        children: [
+          // Location
+        Row(
+  children: [
+    Container(
+      width: 34,
+      height: 34,
+      decoration: BoxDecoration(
+        color: accentColor.withValues(
+          alpha: 0.10,
+        ),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(
+        Icons.location_on_outlined,
+        size: 18,
+        color: accentColor,
+      ),
+    ),
 
-                Expanded(
-                  child: Text(
-                    location,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: primaryText,
-                    ),
-                  ),
-                ),
+    const SizedBox(width: 9),
 
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 22,
-                  color: secondaryText,
-                ),
-              ],
+    Expanded(
+      child: Text(
+        location,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          color: primaryText,
+        ),
+      ),
+    ),
+
+    const SizedBox(width: 6),
+
+    Icon(
+      Icons.mosque_outlined,
+      size: 21,
+      color: accentColor,
+    ),
+  ],
+),   const SizedBox(height: 2),
+
+          // Divider
+          Container(
+            height: 1,
+            color: secondaryText.withValues(
+              alpha: 0.10,
             ),
           ),
-        ),
 
-        const SizedBox(width: 10),
+          const SizedBox(height: 3),
 
-        // Date
-        Expanded(
-          flex: 5,
-          child: Container(
-            height: 58,
-            padding: const EdgeInsets.symmetric(
-              horizontal: 12,
-            ),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
+          // Dates
+          Row(
+            children: [
+              // Hijri
+              Expanded(
+                child: Text(
                   hijriDate,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -119,24 +133,64 @@ class PrayerTimesHeader extends StatelessWidget {
                     color: primaryText,
                   ),
                 ),
+              ),
 
-                const SizedBox(height: 4),
+              const SizedBox(width: 8),
 
-                Text(
+              // Separator
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Weekday
+              Text(
+                weekday,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: primaryText,
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Separator
+              Container(
+                width: 4,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: accentColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+
+              const SizedBox(width: 8),
+
+              // Gregorian
+              Expanded(
+                child: Text(
                   gregorianDate,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.end,
                   style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w400,
-                    color: secondaryText,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: primaryText,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

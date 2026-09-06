@@ -61,16 +61,8 @@ class PrayerTimesList extends StatelessWidget {
       crossAxisAlignment:
           CrossAxisAlignment.start,
       children: [
-        Text(
-          'Prayer Times',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w700,
-            color: primaryText,
-          ),
-        ),
-
-        const SizedBox(height: 2),
+      
+        const SizedBox(height: 4),
 
         Expanded(
           child: Container(
@@ -78,11 +70,10 @@ class PrayerTimesList extends StatelessWidget {
             padding: const EdgeInsets.symmetric(
               vertical: 6,
             ),
-            decoration: BoxDecoration(
-              color: cardColor,
-              borderRadius:
-                  BorderRadius.circular(20),
-            ),
+           decoration: BoxDecoration(
+  color: cardColor.withValues(alpha: 0.91),
+  borderRadius: BorderRadius.circular(20),
+),
             child: Column(
               children: prayers.map((prayer) {
                 final isActive =

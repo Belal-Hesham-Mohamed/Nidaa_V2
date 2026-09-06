@@ -37,16 +37,35 @@ class _PrayerTimesScreenState
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
+    return  Scaffold(
+  backgroundColor: backgroundColor,
 
-      body: SafeArea(
+  body: Stack(
+    children: [
+      Positioned.fill(
+        child: Image.asset(
+          'assets/images/light_background.png',
+          fit: BoxFit.cover,
+        ),
+      ),
+
+      Positioned.fill(
+        child: Container(
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.45)
+              : Colors.white.withValues(alpha: 0.01),
+        ),
+      ),
+
+      SafeArea(
         child: currentIndex == 0
             ? _buildPrayerTimesContent()
             : _buildPlaceholderContent(),
       ),
-
-      bottomNavigationBar: NavigationBar(
+    ],
+  ),
+      bottomNavigationBar:
+       NavigationBar(
         selectedIndex: currentIndex,
         onDestinationSelected: (index) {
           setState(() {
@@ -118,38 +137,36 @@ class _PrayerTimesScreenState
               20,
               12,
             ),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                const PrayerTimesHeader(
-                  location: 'Cairo, Egypt',
-                  hijriDate: '10 Ramadan 1447',
-                  gregorianDate: '28 February 2026',
-                ),
+          child: Column(
+  crossAxisAlignment: CrossAxisAlignment.start,
+  children: [
+    const PrayerTimesHeader(
+      location: 'Cairo, Egypt',
+      hijriDate: '10 Ramadan 1447',
+      gregorianDate: '28 February 2026',
+    ),
 
-                const SizedBox(height: 4),
+    const SizedBox(height: 6),
 
-                SizedBox(
-                  height: 185,
-                  child: const PrayerTimesHero(
-                    prayerName: 'Dhuhr',
-                    prayerTime: '12:58 PM',
-                    countdown: '02:34:18',
-                    progress: 0.65,
-                  ),
-                ),
+    SizedBox(
+      height: 220,
+      child: const PrayerTimesHero(
+        prayerName: 'Dhuhr',
+        prayerTime: '12:58 PM',
+        countdown: '02:34:18',
+        progress: 0.65,
+      ),
+    ),
 
-                const SizedBox(height: 4),
+    const SizedBox(height: 4),
 
-                const Expanded(
-                  child: PrayerTimesList(
-                    activePrayer: 'Dhuhr',
-                  ),
-                ),
-              ],
-            ),
-          ),
+    const Expanded(
+      child: PrayerTimesList(
+        activePrayer: 'Dhuhr',
+      ),
+    ),
+  ],
+),),
         ),
 
         // Future content goes here.
