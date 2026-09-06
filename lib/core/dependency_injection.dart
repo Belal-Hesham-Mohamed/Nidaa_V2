@@ -9,7 +9,9 @@ import 'package:nidaa_v2/location/current_location/data/models/location_model.da
 import 'package:nidaa_v2/location/current_location/data/repositories/location_repo.dart';
 import 'package:nidaa_v2/location/current_location/domain/repositories/location_repo_base.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_usecase.dart';
+import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_mode_usecase.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_saved_current_location_usecase.dart';
+import 'package:nidaa_v2/location/current_location/domain/usecase/save_location_mode_usecase.dart';
 import 'package:nidaa_v2/location/manual_location/data/datasource/manual_location_datasource.dart';
 import 'package:nidaa_v2/location/manual_location/data/datasource/manual_location_local_datasource.dart';
 import 'package:nidaa_v2/location/manual_location/data/models/manual_location_model.dart';
@@ -33,6 +35,10 @@ void setupServiceLocator() {
     Hive.box<LocationModel>('locationBox'),
   );
 
+  sl.registerSingleton<Box<String>>(
+    Hive.box<String>('locationModeBox'),
+  );
+
   sl.registerSingleton<Box<ManualLocationModel>>(
     Hive.box<ManualLocationModel>('manualLocationBox'),
   );
@@ -53,7 +59,10 @@ void setupServiceLocator() {
 
   // Local location datasource
   sl.registerLazySingleton<LocationLocalDataSource>(
-    () => LocationLocalDataSourceImpl(sl<Box<LocationModel>>()),
+    () => LocationLocalDataSourceImpl(
+      sl<Box<LocationModel>>(),
+      sl<Box<String>>(),
+    ),
   );
 
   // Repository
@@ -72,6 +81,14 @@ void setupServiceLocator() {
 
   sl.registerLazySingleton<GetSavedCurrentLocationUsecase>(
     () => GetSavedCurrentLocationUsecase(sl<LocationRepoBase>()),
+  );
+
+  sl.registerLazySingleton<GetLocationModeUsecase>(
+    () => GetLocationModeUsecase(sl<LocationRepoBase>()),
+  );
+
+  sl.registerLazySingleton<SaveLocationModeUsecase>(
+    () => SaveLocationModeUsecase(sl<LocationRepoBase>()),
   );
 
   // Manual location datasource

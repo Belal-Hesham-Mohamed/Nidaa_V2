@@ -7,6 +7,7 @@ import 'package:nidaa_v2/location/current_location/data/datasource/location_loca
 import 'package:nidaa_v2/location/current_location/data/exception/exception.dart'
     hide LocationServiceDisabledException;
 import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
+import 'package:nidaa_v2/location/current_location/domain/entities/location_mode.dart';
 import 'package:nidaa_v2/location/current_location/domain/repositories/location_repo_base.dart';
 
 class LocationRepo implements LocationRepoBase {
@@ -85,6 +86,30 @@ class LocationRepo implements LocationRepoBase {
       return Left(
         Failure('Something went wrong while getting saved current location'),
       );
+    }
+  }
+
+  @override
+  Future<Either<Failure, LocationMode>> getSavedLocationMode() async {
+    try {
+      final savedMode = await localDataSource.getSavedLocationMode();
+
+      return Right(savedMode ?? LocationMode.current);
+    } catch (_) {
+      return Left(Failure('Something went wrong while getting location mode'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, LocationMode>> saveLocationMode(
+    LocationMode mode,
+  ) async {
+    try {
+      await localDataSource.saveLocationMode(mode);
+
+      return Right(mode);
+    } catch (_) {
+      return Left(Failure('Something went wrong while saving location mode'));
     }
   }
 
