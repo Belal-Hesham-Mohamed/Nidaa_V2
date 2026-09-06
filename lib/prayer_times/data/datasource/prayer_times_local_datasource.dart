@@ -37,7 +37,7 @@ class PrayerTimesLocalDataSourceImpl implements PrayerTimesLocalDataSource {
 Future<PrayerTimesModel?> getPrayerTimesForDate({
   required String date,
 }) async {
-  final savedPrayerTimes = await box.get('prayer_times');
+  final savedPrayerTimes = box.get('prayer_times');
 
   if (savedPrayerTimes == null) {
     return null;

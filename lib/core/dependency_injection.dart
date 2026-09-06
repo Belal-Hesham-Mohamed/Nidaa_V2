@@ -27,6 +27,7 @@ import 'package:nidaa_v2/prayer_times/domain/repositories/prayer_times_repo_base
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_with_cache_usecase.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_saved_prayer_times_usecase.dart';
+import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -146,5 +147,16 @@ sl.registerLazySingleton<GetPrayerTimesWithCacheUsecase>(
 
   sl.registerLazySingleton<GetSavedPrayerTimesUsecase>(
     () => GetSavedPrayerTimesUsecase(sl<PrayerTimesRepoBase>()),
+  );
+
+  // Prayer times Cubit
+  sl.registerFactory<PrayerTimesCubit>(
+    () => PrayerTimesCubit(
+      sl<GetLocationModeUsecase>(),
+      sl<GetLocationUsecase>(),
+      sl<GetSavedCurrentLocationUsecase>(),
+      sl<GetSavedManualLocationUsecase>(),
+      sl<GetPrayerTimesUsecase>(),
+    ),
   );
 }

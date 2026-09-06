@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
+import 'package:nidaa_v2/core/dependency_injection.dart';
+import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
+import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_header.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_hero.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_list.dart';
@@ -20,18 +24,15 @@ class PrayerTimesScreen extends StatefulWidget {
   final ValueChanged<Locale> onLocaleChanged;
 
   @override
-  State<PrayerTimesScreen> createState() =>
-      _PrayerTimesScreenState();
+  State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
 }
 
-class _PrayerTimesScreenState
-    extends State<PrayerTimesScreen> {
+class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   int currentIndex = 0;
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final backgroundColor = isDark
         ? AppColors.darkBackground
@@ -51,11 +52,7 @@ class _PrayerTimesScreenState
 
     return Scaffold(
       backgroundColor: backgroundColor,
-
-      // Allows the background image to continue
-      // behind the floating bottom navigation.
       extendBody: true,
-
       body: Stack(
         children: [
           // Background
@@ -102,26 +99,18 @@ class _PrayerTimesScreenState
               ),
               child: NavigationBar(
                 selectedIndex: currentIndex,
-
                 onDestinationSelected: (index) {
                   setState(() {
                     currentIndex = index;
                   });
                 },
-
-                // Transparent NavigationBar.
-                // The outer Container controls the shape.
                 backgroundColor: Colors.transparent,
-
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-
-                // Selected item indicator.
                 indicatorColor: activeColor.withValues(
                   alpha: 0.12,
                 ),
-
                 destinations: [
                   NavigationDestination(
                     icon: Icon(
@@ -134,7 +123,6 @@ class _PrayerTimesScreenState
                     ),
                     label: 'Prayer Times',
                   ),
-
                   NavigationDestination(
                     icon: Icon(
                       Icons.explore_outlined,
@@ -146,7 +134,6 @@ class _PrayerTimesScreenState
                     ),
                     label: 'Qibla',
                   ),
-
                   NavigationDestination(
                     icon: Icon(
                       Icons.menu_book_outlined,
@@ -158,7 +145,6 @@ class _PrayerTimesScreenState
                     ),
                     label: 'Azkar',
                   ),
-
                   NavigationDestination(
                     icon: Icon(
                       Icons.settings_outlined,
@@ -197,75 +183,195 @@ class _PrayerTimesScreenState
   }
 
   Widget _buildPrayerTimesContent() {
-    return CustomScrollView(
-      slivers: [
-        SliverFillRemaining(
-          hasScrollBody: false,
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              20,
-              16,
-              20,
-              12,
-            ),
-            child: Column(
-              crossAxisAlignment:
-                  CrossAxisAlignment.start,
-              children: [
-                const PrayerTimesHeader(
-                  location: 'Cairo, Egypt',
-                  hijriDate: '10 Ramadan 1447',
-                  gregorianDate:
-                      '28 February 2026',
+    return BlocProvider<PrayerTimesCubit>(
+      create: (context) => sl<PrayerTimesCubit>()..getPrayerTimes(),
+      child: BlocBuilder<PrayerTimesCubit, PrayerTimesState>(
+        builder: (context, state) {
+          if (state is PrayerTimesLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          } else if (state is PrayerTimesFailure) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            final primaryText = isDark
+                ? AppColors.darkPrimaryText
+                : AppColors.lightPrimaryText;
+            final accentColor = isDark
+                ? AppColors.darkAccentGold
+                : AppColors.lightAccentBlue;
+
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 48,
+                      color: Colors.redAccent,
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: primaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        context.read<PrayerTimesCubit>().getPrayerTimes();
+                      },
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Retry'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
+              ),
+            );
+          } else if (state is PrayerTimesSuccess) {
+            final prayerTimes = state.prayerTimes;
+            final locationName = state.locationName;
+            final isFallback = state.isFallbackLocation;
 
-                const SizedBox(height: 6),
+            final activePrayerName = _determineActivePrayer(prayerTimes.timings);
 
-                SizedBox(
-                  height: 220,
-                  child: const PrayerTimesHero(
-                    prayerName: 'Dhuhr',
-                    prayerTime: '12:58 PM',
-                    countdown: '02:34:18',
-                    progress: 0.65,
-                  ),
-                ),
-
-                const SizedBox(height: 4),
-
-                const Expanded(
-                  child: PrayerTimesList(
-                    activePrayer: 'Dhuhr',
+            return CustomScrollView(
+              slivers: [
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      20,
+                      16,
+                      20,
+                      12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        PrayerTimesHeader(
+                          location: isFallback
+                              ? '$locationName (Saved)'
+                              : locationName,
+                          hijriDate: prayerTimes.date.hijri,
+                          gregorianDate: prayerTimes.date.gregorian,
+                        ),
+                        const SizedBox(height: 6),
+                        SizedBox(
+                          height: 220,
+                          child: PrayerTimesHero(
+                            prayerName: activePrayerName,
+                            prayerTime: _getPrayerTimeByName(
+                              prayerTimes.timings,
+                              activePrayerName,
+                            ),
+                            countdown: _calculateCountdown(
+                              prayerTimes.timings,
+                              activePrayerName,
+                            ),
+                            progress: 0.65,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Expanded(
+                          child: PrayerTimesList(
+                            activePrayer: activePrayerName,
+                            timings: prayerTimes.timings,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],
-            ),
-          ),
-        ),
+            );
+          }
 
-        // Future content
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              24,
-            ),
-            child: Column(
-              children: [
-                // Add future sections here.
-              ],
-            ),
-          ),
-        ),
-      ],
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 
+  String _determineActivePrayer(Timings timings) {
+    final now = DateTime.now();
+    final times = [
+      {'name': 'Fajr', 'time': timings.fajr},
+      {'name': 'Sunrise', 'time': timings.sunrise},
+      {'name': 'Dhuhr', 'time': timings.dhuhr},
+      {'name': 'Asr', 'time': timings.asr},
+      {'name': 'Maghrib', 'time': timings.maghrib},
+      {'name': 'Isha', 'time': timings.isha},
+    ];
+
+    for (final prayer in times) {
+      final prayerDateTime = _parseTimeString(now, prayer['time']!);
+      if (prayerDateTime != null && prayerDateTime.isAfter(now)) {
+        return prayer['name']!;
+      }
+    }
+    return 'Fajr';
+  }
+
+  String _getPrayerTimeByName(Timings timings, String name) {
+    switch (name) {
+      case 'Fajr':
+        return timings.fajr;
+      case 'Sunrise':
+        return timings.sunrise;
+      case 'Dhuhr':
+        return timings.dhuhr;
+      case 'Asr':
+        return timings.asr;
+      case 'Maghrib':
+        return timings.maghrib;
+      case 'Isha':
+        return timings.isha;
+      default:
+        return timings.dhuhr;
+    }
+  }
+
+  String _calculateCountdown(Timings timings, String nextPrayerName) {
+    final now = DateTime.now();
+    final timeStr = _getPrayerTimeByName(timings, nextPrayerName);
+    var target = _parseTimeString(now, timeStr);
+
+    if (target == null) return '00:00:00';
+    if (target.isBefore(now)) {
+      target = target.add(const Duration(days: 1));
+    }
+
+    final diff = target.difference(now);
+    final hours = diff.inHours.toString().padLeft(2, '0');
+    final minutes = (diff.inMinutes % 60).toString().padLeft(2, '0');
+    final seconds = (diff.inSeconds % 60).toString().padLeft(2, '0');
+
+    return '$hours:$minutes:$seconds';
+  }
+
+  DateTime? _parseTimeString(DateTime baseDate, String timeStr) {
+    try {
+      final cleanStr = timeStr.split(' ')[0];
+      final parts = cleanStr.split(':');
+      final hour = int.parse(parts[0]);
+      final minute = int.parse(parts[1]);
+      return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+    } catch (_) {
+      return null;
+    }
+  }
+
   Widget _buildPlaceholderContent() {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final primaryText = isDark
         ? AppColors.darkPrimaryText

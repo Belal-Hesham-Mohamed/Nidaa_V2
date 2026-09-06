@@ -8,9 +8,15 @@ final class PrayerTimesInitial extends PrayerTimesState {}
 final class PrayerTimesLoading extends PrayerTimesState {}
 
 final class PrayerTimesSuccess extends PrayerTimesState {
-  final List<PrayerTimes> prayerTimes;
+  final PrayerTimes prayerTimes;
+  final String locationName;
+  final bool isFallbackLocation;
 
-  PrayerTimesSuccess(this.prayerTimes);
+  PrayerTimesSuccess({
+    required this.prayerTimes,
+    required this.locationName,
+    this.isFallbackLocation = false,
+  });
 }
 
 final class PrayerTimesFailure extends PrayerTimesState {

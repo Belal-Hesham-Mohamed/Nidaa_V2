@@ -1,45 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
+import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
 
 class PrayerTimesList extends StatelessWidget {
   final String activePrayer;
+  final Timings? timings;
 
   const PrayerTimesList({
     super.key,
     required this.activePrayer,
+    this.timings,
   });
 
-  static const List<Map<String, String>> prayers = [
-    {
-      'name': 'Fajr',
-      'time': '04:35 AM',
-    },
-    {
-      'name': 'Sunrise',
-      'time': '06:02 AM',
-    },
-    {
-      'name': 'Dhuhr',
-      'time': '12:58 PM',
-    },
-    {
-      'name': 'Asr',
-      'time': '04:27 PM',
-    },
-    {
-      'name': 'Maghrib',
-      'time': '07:54 PM',
-    },
-    {
-      'name': 'Isha',
-      'time': '09:21 PM',
-    },
-  ];
+  List<Map<String, String>> _getPrayerItems() {
+    if (timings != null) {
+      return [
+        {'name': 'Fajr', 'time': timings!.fajr},
+        {'name': 'Sunrise', 'time': timings!.sunrise},
+        {'name': 'Dhuhr', 'time': timings!.dhuhr},
+        {'name': 'Asr', 'time': timings!.asr},
+        {'name': 'Maghrib', 'time': timings!.maghrib},
+        {'name': 'Isha', 'time': timings!.isha},
+      ];
+    }
+    return const [
+      {'name': 'Fajr', 'time': '04:35 AM'},
+      {'name': 'Sunrise', 'time': '06:02 AM'},
+      {'name': 'Dhuhr', 'time': '12:58 PM'},
+      {'name': 'Asr', 'time': '04:27 PM'},
+      {'name': 'Maghrib', 'time': '07:54 PM'},
+      {'name': 'Isha', 'time': '09:21 PM'},
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
-    final isDark =
-        Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final primaryText = isDark
         ? AppColors.darkPrimaryText
@@ -57,27 +53,23 @@ class PrayerTimesList extends StatelessWidget {
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    return Column(
-      crossAxisAlignment:
-          CrossAxisAlignment.start,
-      children: [
-      
-        const SizedBox(height: 4),
+    final prayersList = _getPrayerItems();
 
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
         Expanded(
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(
-              vertical: 6,
+            padding: const EdgeInsets.symmetric(vertical: 6),
+            decoration: BoxDecoration(
+              color: cardColor.withValues(alpha: 0.94),
+              borderRadius: BorderRadius.circular(20),
             ),
-           decoration: BoxDecoration(
-  color: cardColor.withValues(alpha: 0.94),
-  borderRadius: BorderRadius.circular(20),
-),
             child: Column(
-              children: prayers.map((prayer) {
-                final isActive =
-                    prayer['name'] == activePrayer;
+              children: prayersList.map((prayer) {
+                final isActive = prayer['name'] == activePrayer;
 
                 return Expanded(
                   child: _PrayerTimeItem(
@@ -118,58 +110,38 @@ class _PrayerTimeItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: 8,
-        vertical: 2,
-      ),
-      padding: const EdgeInsets.symmetric(
-        horizontal: 16,
-        vertical: 4,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
         color: isActive
             ? activeColor.withValues(alpha: 0.10)
             : Colors.transparent,
-        borderRadius:
-            BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(14),
       ),
       child: Row(
         children: [
           Icon(
             _getPrayerIcon(name),
             size: 22,
-            color: isActive
-                ? activeColor
-                : secondaryText,
+            color: isActive ? activeColor : secondaryText,
           ),
-
           const SizedBox(width: 14),
-
           Expanded(
             child: Text(
               name,
               style: TextStyle(
                 fontSize: 16,
-                fontWeight: isActive
-                    ? FontWeight.w700
-                    : FontWeight.w500,
-                color: isActive
-                    ? activeColor
-                    : primaryText,
+                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                color: isActive ? activeColor : primaryText,
               ),
             ),
           ),
-
           Text(
             time,
             style: TextStyle(
               fontSize: 15,
-              fontWeight: isActive
-                  ? FontWeight.w700
-                  : FontWeight.w500,
-              color: isActive
-                  ? activeColor
-                  : secondaryText,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+              color: isActive ? activeColor : secondaryText,
             ),
           ),
         ],
@@ -181,22 +153,16 @@ class _PrayerTimeItem extends StatelessWidget {
     switch (prayerName) {
       case 'Fajr':
         return Icons.nightlight_round;
-
       case 'Sunrise':
         return Icons.wb_sunny_outlined;
-
       case 'Dhuhr':
         return Icons.wb_sunny;
-
       case 'Asr':
         return Icons.wb_twilight;
-
       case 'Maghrib':
         return Icons.nights_stay_outlined;
-
       case 'Isha':
         return Icons.dark_mode_outlined;
-
       default:
         return Icons.access_time;
     }
