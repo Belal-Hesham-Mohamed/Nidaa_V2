@@ -8,10 +8,12 @@ class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
 
   @override
-  State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
+  State<PrayerTimesScreen> createState() =>
+      _PrayerTimesScreenState();
 }
 
-class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
+class _PrayerTimesScreenState
+    extends State<PrayerTimesScreen> {
   int currentIndex = 0;
 
   @override
@@ -105,54 +107,68 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Widget _buildPrayerTimesContent() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final heroHeight =
-            (constraints.maxHeight * 0.26)
-                .clamp(180.0, 220.0);
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(
-            20,
-            16,
-            20,
-            24,
-          ),
-          child: Column(
-            crossAxisAlignment:
-                CrossAxisAlignment.start,
-            children: [
-              const PrayerTimesHeader(
-                location: 'Cairo, Egypt',
-                hijriDate: '10 Ramadan 1447',
-                gregorianDate: '28 February 2026',
-              ),
-
-              const SizedBox(height: 8),
-
-              SizedBox(
-                height: heroHeight,
-                child: const PrayerTimesHero(
-                  prayerName: 'Dhuhr',
-                  prayerTime: '12:58 PM',
-                  countdown: '02:34:18',
-                  progress: 0.65,
+    return CustomScrollView(
+      slivers: [
+        SliverFillRemaining(
+          hasScrollBody: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              20,
+              16,
+              20,
+              12,
+            ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                const PrayerTimesHeader(
+                  location: 'Cairo, Egypt',
+                  hijriDate: '10 Ramadan 1447',
+                  gregorianDate: '28 February 2026',
                 ),
-              ),
 
-              const SizedBox(height: 8),
+                const SizedBox(height: 4),
 
-              const PrayerTimesList(
-                activePrayer: 'Dhuhr',
-              ),
+                SizedBox(
+                  height: 185,
+                  child: const PrayerTimesHero(
+                    prayerName: 'Dhuhr',
+                    prayerTime: '12:58 PM',
+                    countdown: '02:34:18',
+                    progress: 0.65,
+                  ),
+                ),
 
-              const SizedBox(height: 24),
+                const SizedBox(height: 4),
 
-              // Future content goes here.
-            ],
+                const Expanded(
+                  child: PrayerTimesList(
+                    activePrayer: 'Dhuhr',
+                  ),
+                ),
+              ],
+            ),
           ),
-        );
-      },
+        ),
+
+        // Future content goes here.
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              20,
+              12,
+              20,
+              24,
+            ),
+            child: Column(
+              children: [
+                // Add future sections here.
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 

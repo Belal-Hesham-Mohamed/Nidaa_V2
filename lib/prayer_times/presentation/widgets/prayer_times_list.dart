@@ -58,42 +58,48 @@ class PrayerTimesList extends StatelessWidget {
         : AppColors.lightAccentBlue;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment:
+          CrossAxisAlignment.start,
       children: [
         Text(
           'Prayer Times',
           style: TextStyle(
-            fontSize: 18,
+            fontSize: 16,
             fontWeight: FontWeight.w700,
             color: primaryText,
           ),
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 2),
 
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(
-            vertical: 8,
-          ),
-          decoration: BoxDecoration(
-            color: cardColor,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            children: prayers.map((prayer) {
-              final isActive =
-                  prayer['name'] == activePrayer;
+        Expanded(
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(
+              vertical: 6,
+            ),
+            decoration: BoxDecoration(
+              color: cardColor,
+              borderRadius:
+                  BorderRadius.circular(20),
+            ),
+            child: Column(
+              children: prayers.map((prayer) {
+                final isActive =
+                    prayer['name'] == activePrayer;
 
-              return _PrayerTimeItem(
-                name: prayer['name']!,
-                time: prayer['time']!,
-                isActive: isActive,
-                primaryText: primaryText,
-                secondaryText: secondaryText,
-                activeColor: activeColor,
-              );
-            }).toList(),
+                return Expanded(
+                  child: _PrayerTimeItem(
+                    name: prayer['name']!,
+                    time: prayer['time']!,
+                    isActive: isActive,
+                    primaryText: primaryText,
+                    secondaryText: secondaryText,
+                    activeColor: activeColor,
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ),
       ],
@@ -127,13 +133,14 @@ class _PrayerTimeItem extends StatelessWidget {
       ),
       padding: const EdgeInsets.symmetric(
         horizontal: 16,
-        vertical: 14,
+        vertical: 4,
       ),
       decoration: BoxDecoration(
         color: isActive
             ? activeColor.withValues(alpha: 0.10)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius:
+            BorderRadius.circular(14),
       ),
       child: Row(
         children: [
