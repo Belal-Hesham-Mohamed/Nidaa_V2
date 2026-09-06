@@ -157,6 +157,7 @@ sl.registerLazySingleton<GetPrayerTimesWithCacheUsecase>(
       sl<GetSavedCurrentLocationUsecase>(),
       sl<GetSavedManualLocationUsecase>(),
       sl<GetPrayerTimesUsecase>(),
+      sl<GetPrayerTimesWithCacheUsecase>(),
     ),
   );
 }

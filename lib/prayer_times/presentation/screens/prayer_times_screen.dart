@@ -29,6 +29,20 @@ class PrayerTimesScreen extends StatefulWidget {
 
 class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   int currentIndex = 0;
+  late final PrayerTimesCubit _prayerTimesCubit;
+
+  @override
+  void initState() {
+    super.initState();
+    _prayerTimesCubit = sl<PrayerTimesCubit>();
+    _prayerTimesCubit.getPrayerTimes();
+  }
+
+  @override
+  void dispose() {
+    _prayerTimesCubit.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -183,8 +197,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Widget _buildPrayerTimesContent() {
-    return BlocProvider<PrayerTimesCubit>(
-      create: (context) => sl<PrayerTimesCubit>()..getPrayerTimes(),
+    return BlocProvider<PrayerTimesCubit>.value(
+      value: _prayerTimesCubit,
       child: BlocBuilder<PrayerTimesCubit, PrayerTimesState>(
         builder: (context, state) {
           if (state is PrayerTimesLoading) {
