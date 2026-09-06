@@ -6,7 +6,18 @@ import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_list.dar
 import 'package:nidaa_v2/settings/presentation/screens/settings_screen.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
-  const PrayerTimesScreen({super.key});
+  const PrayerTimesScreen({
+    super.key,
+    required this.themeMode,
+    required this.onThemeModeChanged,
+    required this.locale,
+    required this.onLocaleChanged,
+  });
+
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
+  final Locale locale;
+  final ValueChanged<Locale> onLocaleChanged;
 
   @override
   State<PrayerTimesScreen> createState() =>
@@ -66,9 +77,7 @@ class _PrayerTimesScreenState
 
           // Main content
           SafeArea(
-            child: currentIndex == 0
-                ? _buildPrayerTimesContent()
-                : _buildPlaceholderContent(),
+            child: _buildCurrentTab(),
           ),
         ],
       ),
@@ -95,15 +104,6 @@ class _PrayerTimesScreenState
                 selectedIndex: currentIndex,
 
                 onDestinationSelected: (index) {
-                  if (index == 3) {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const SettingsScreen(),
-                      ),
-                    );
-                    return;
-                  }
-
                   setState(() {
                     currentIndex = index;
                   });
@@ -177,6 +177,23 @@ class _PrayerTimesScreenState
         ),
       ),
     );
+  }
+
+  Widget _buildCurrentTab() {
+    if (currentIndex == 0) {
+      return _buildPrayerTimesContent();
+    }
+
+    if (currentIndex == 3) {
+      return SettingsScreen(
+        themeMode: widget.themeMode,
+        onThemeModeChanged: widget.onThemeModeChanged,
+        locale: widget.locale,
+        onLocaleChanged: widget.onLocaleChanged,
+      );
+    }
+
+    return _buildPlaceholderContent();
   }
 
   Widget _buildPrayerTimesContent() {

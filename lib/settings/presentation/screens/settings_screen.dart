@@ -6,16 +6,24 @@ import 'package:nidaa_v2/location/current_location/domain/usecase/save_location_
 import 'package:nidaa_v2/location/manual_location/presentation/screens/manual_location_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    required this.themeMode,
+    required this.onThemeModeChanged,
+    required this.locale,
+    required this.onLocaleChanged,
+  });
+
+  final ThemeMode themeMode;
+  final ValueChanged<ThemeMode> onThemeModeChanged;
+  final Locale locale;
+  final ValueChanged<Locale> onLocaleChanged;
 
   @override
   State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  ThemeMode _themeMode = ThemeMode.system;
-  Locale _locale = const Locale('en');
-
   Future<void> _openLocationFlow() async {
     final location = await Navigator.of(
       context,
@@ -47,7 +55,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         : AppColors.lightAccentBlue;
 
     return Scaffold(
-      backgroundColor: backgroundColor,
+      backgroundColor: backgroundColor.withValues(alpha: 0.16),
       appBar: AppBar(
         backgroundColor: backgroundColor,
         foregroundColor: primaryText,
@@ -64,8 +72,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
               _Choice(label: 'Dark', value: ThemeMode.dark),
               _Choice(label: 'Device', value: ThemeMode.system),
             ],
-            selectedValue: _themeMode,
-            onSelected: (mode) => setState(() => _themeMode = mode),
+            selectedValue: widget.themeMode,
+            onSelected: widget.onThemeModeChanged,
             surfaceColor: surfaceColor,
             selectedColor: accentColor,
             primaryText: primaryText,
@@ -82,8 +90,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 value: Locale('ar'),
               ),
             ],
-            selectedValue: _locale,
-            onSelected: (locale) => setState(() => _locale = locale),
+            selectedValue: widget.locale,
+            onSelected: widget.onLocaleChanged,
             surfaceColor: surfaceColor,
             selectedColor: accentColor,
             primaryText: primaryText,

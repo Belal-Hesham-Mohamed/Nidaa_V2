@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
@@ -28,10 +29,17 @@ await Hive.openBox<List<PrayerTimesModel>>('prayerTimesBox');  setupServiceLocat
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.system;
+  Locale _locale = const Locale('en');
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -44,8 +52,30 @@ class MyApp extends StatelessWidget {
             ],
             supportedLocales: S.delegate.supportedLocales,
       title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const PrayerTimesScreen(),
+      locale: _locale,
+      themeMode: _themeMode,
+      theme: ThemeData(
+        scaffoldBackgroundColor: AppColors.lightBackground,
+        colorScheme: ColorScheme.light(
+          primary: AppColors.lightAccentBlue,
+          surface: AppColors.lightSurface,
+          onSurface: AppColors.lightPrimaryText,
+        ),
+      ),
+      darkTheme: ThemeData(
+        scaffoldBackgroundColor: AppColors.darkBackground,
+        colorScheme: ColorScheme.dark(
+          primary: AppColors.darkAccentGold,
+          surface: AppColors.darkSurface,
+          onSurface: AppColors.darkPrimaryText,
+        ),
+      ),
+      home: PrayerTimesScreen(
+        themeMode: _themeMode,
+        onThemeModeChanged: (mode) => setState(() => _themeMode = mode),
+        locale: _locale,
+        onLocaleChanged: (locale) => setState(() => _locale = locale),
+      ),
     );
   }
 }
