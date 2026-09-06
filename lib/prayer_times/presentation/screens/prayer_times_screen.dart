@@ -3,6 +3,7 @@ import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_header.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_hero.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_list.dart';
+import 'package:nidaa_v2/settings/presentation/screens/settings_screen.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
@@ -94,6 +95,15 @@ class _PrayerTimesScreenState
                 selectedIndex: currentIndex,
 
                 onDestinationSelected: (index) {
+                  if (index == 3) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const SettingsScreen(),
+                      ),
+                    );
+                    return;
+                  }
+
                   setState(() {
                     currentIndex = index;
                   });
