@@ -37,81 +37,98 @@ class PrayerTimesHero extends StatelessWidget {
     final normalizedProgress =
         progress.clamp(0.0, 1.0);
 
-    return SizedBox(
-      width: double.infinity,
-      child: AspectRatio(
-        aspectRatio: 1,
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            CustomPaint(
-              size: const Size.square(320),
-              painter: _PrayerProgressPainter(
-                progress: normalizedProgress,
-                backgroundColor: isDark
-                    ? AppColors.darkSurface
-                    : AppColors.lightSecondaryBackground,
-                progressColor: accentColor,
-              ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final circleSize = math.min(
+          constraints.maxWidth,
+          constraints.maxHeight,
+        );
+
+        return Center(
+          child: SizedBox(
+            width: circleSize,
+            height: circleSize,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                CustomPaint(
+                  size: Size.square(circleSize),
+                  painter: _PrayerProgressPainter(
+                    progress: normalizedProgress,
+                    backgroundColor: isDark
+                        ? AppColors.darkSurface
+                        : AppColors.lightSecondaryBackground,
+                    progressColor: accentColor,
+                  ),
+                ),
+
+                Padding(
+                  padding: EdgeInsets.all(
+                    circleSize * 0.18,
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        prayerName,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: circleSize * 0.095,
+                          fontWeight: FontWeight.w700,
+                          color: primaryText,
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: circleSize * 0.045,
+                      ),
+
+                      Text(
+                        countdown,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: circleSize * 0.115,
+                          fontWeight: FontWeight.w600,
+                          color: primaryText,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: circleSize * 0.015,
+                      ),
+
+                      Text(
+                        'remaining',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: circleSize * 0.045,
+                          fontWeight: FontWeight.w400,
+                          color: secondaryText,
+                        ),
+                      ),
+
+                      SizedBox(
+                        height: circleSize * 0.045,
+                      ),
+
+                      Text(
+                        prayerTime,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: circleSize * 0.065,
+                          fontWeight: FontWeight.w600,
+                          color: primaryText,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-
-            Padding(
-              padding: const EdgeInsets.all(72),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    prayerName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w700,
-                      color: primaryText,
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  Text(
-                    countdown,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 38,
-                      fontWeight: FontWeight.w600,
-                      color: primaryText,
-                      letterSpacing: 0.5,
-                    ),
-                  ),
-
-                  const SizedBox(height: 6),
-
-                  Text(
-                    'remaining',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w400,
-                      color: secondaryText,
-                    ),
-                  ),
-
-                  const SizedBox(height: 18),
-
-                  Text(
-                    prayerTime,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 21,
-                      fontWeight: FontWeight.w600,
-                      color: primaryText,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }
@@ -137,7 +154,7 @@ class _PrayerProgressPainter extends CustomPainter {
       size.height / 2,
     );
 
-    final radius = size.width / 2 - 14;
+    final radius = size.width / 2 - 12;
 
     const startAngle = -math.pi / 2;
 
@@ -152,7 +169,7 @@ class _PrayerProgressPainter extends CustomPainter {
     // Background ring
     final backgroundPaint = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 8
+      ..strokeWidth = 7
       ..color = backgroundColor;
 
     canvas.drawCircle(
@@ -165,14 +182,14 @@ class _PrayerProgressPainter extends CustomPainter {
       // Outer soft glow
       final outerGlowPaint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 20
+        ..strokeWidth = 18
         ..strokeCap = StrokeCap.round
         ..color = progressColor.withValues(
           alpha: 0.10,
         )
         ..maskFilter = const MaskFilter.blur(
           BlurStyle.normal,
-          14,
+          12,
         );
 
       canvas.drawArc(
@@ -183,17 +200,17 @@ class _PrayerProgressPainter extends CustomPainter {
         outerGlowPaint,
       );
 
-      // Stronger inner glow
+      // Inner glow
       final innerGlowPaint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 14
+        ..strokeWidth = 13
         ..strokeCap = StrokeCap.round
         ..color = progressColor.withValues(
           alpha: 0.22,
         )
         ..maskFilter = const MaskFilter.blur(
           BlurStyle.normal,
-          7,
+          6,
         );
 
       canvas.drawArc(
@@ -207,7 +224,7 @@ class _PrayerProgressPainter extends CustomPainter {
       // Main progress ring
       final progressPaint = Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 8
+        ..strokeWidth = 7
         ..strokeCap = StrokeCap.round
         ..color = progressColor;
 
@@ -238,27 +255,27 @@ class _PrayerProgressPainter extends CustomPainter {
         )
         ..maskFilter = const MaskFilter.blur(
           BlurStyle.normal,
-          10,
+          9,
         );
 
       canvas.drawCircle(
         endpoint,
-        10,
+        9,
         endpointGlowPaint,
       );
 
-      // Endpoint
+      // Endpoint dot
       final endpointPaint = Paint()
         ..style = PaintingStyle.fill
         ..color = progressColor;
 
       canvas.drawCircle(
         endpoint,
-        6,
+        5,
         endpointPaint,
       );
 
-      // Small white highlight
+      // White highlight
       final highlightPaint = Paint()
         ..style = PaintingStyle.fill
         ..color = Colors.white.withValues(

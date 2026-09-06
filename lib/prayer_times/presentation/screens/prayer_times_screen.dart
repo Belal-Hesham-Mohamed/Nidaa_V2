@@ -8,12 +8,10 @@ class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({super.key});
 
   @override
-  State<PrayerTimesScreen> createState() =>
-      _PrayerTimesScreenState();
+  State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
 }
 
-class _PrayerTimesScreenState
-    extends State<PrayerTimesScreen> {
+class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   int currentIndex = 0;
 
   @override
@@ -54,7 +52,8 @@ class _PrayerTimesScreenState
           });
         },
         backgroundColor: navigationColor,
-        indicatorColor: activeColor.withValues(alpha: 0.12),
+        indicatorColor:
+            activeColor.withValues(alpha: 0.12),
         destinations: [
           NavigationDestination(
             icon: Icon(
@@ -106,38 +105,54 @@ class _PrayerTimesScreenState
   }
 
   Widget _buildPrayerTimesContent() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(
-        20,
-        16,
-        20,
-        24,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const PrayerTimesHeader(
-            location: 'Cairo, Egypt',
-            hijriDate: '10 Ramadan 1447',
-            gregorianDate: '28 February 2026',
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final heroHeight =
+            (constraints.maxHeight * 0.26)
+                .clamp(180.0, 220.0);
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            20,
+            16,
+            20,
+            24,
           ),
+          child: Column(
+            crossAxisAlignment:
+                CrossAxisAlignment.start,
+            children: [
+              const PrayerTimesHeader(
+                location: 'Cairo, Egypt',
+                hijriDate: '10 Ramadan 1447',
+                gregorianDate: '28 February 2026',
+              ),
 
-          const SizedBox(height: 20),
+              const SizedBox(height: 8),
 
-          const PrayerTimesHero(
-            prayerName: 'Dhuhr',
-            prayerTime: '12:58 PM',
-            countdown: '02:34:18',
-            progress: 0.65,
+              SizedBox(
+                height: heroHeight,
+                child: const PrayerTimesHero(
+                  prayerName: 'Dhuhr',
+                  prayerTime: '12:58 PM',
+                  countdown: '02:34:18',
+                  progress: 0.65,
+                ),
+              ),
+
+              const SizedBox(height: 8),
+
+              const PrayerTimesList(
+                activePrayer: 'Dhuhr',
+              ),
+
+              const SizedBox(height: 24),
+
+              // Future content goes here.
+            ],
           ),
-
-          const SizedBox(height: 24),
-
-          const PrayerTimesList(
-            activePrayer: 'Dhuhr',
-          ),
-        ],
-      ),
+        );
+      },
     );
   }
 
