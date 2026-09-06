@@ -37,90 +37,134 @@ class _PrayerTimesScreenState
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    return  Scaffold(
-  backgroundColor: backgroundColor,
+    return Scaffold(
+      backgroundColor: backgroundColor,
 
-  body: Stack(
-    children: [
-      Positioned.fill(
-        child: Image.asset(
-          'assets/images/light_background.png',
-          fit: BoxFit.cover,
-        ),
-      ),
+      // Allows the background image to continue
+      // behind the floating bottom navigation.
+      extendBody: true,
 
-      Positioned.fill(
-        child: Container(
-          color: isDark
-              ? Colors.black.withValues(alpha: 0.45)
-              : Colors.white.withValues(alpha: 0.01),
-        ),
-      ),
+      body: Stack(
+        children: [
+          // Background
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/light_background.png',
+              fit: BoxFit.cover,
+            ),
+          ),
 
-      SafeArea(
-        child: currentIndex == 0
-            ? _buildPrayerTimesContent()
-            : _buildPlaceholderContent(),
-      ),
-    ],
-  ),
-      bottomNavigationBar:
-       NavigationBar(
-        selectedIndex: currentIndex,
-        onDestinationSelected: (index) {
-          setState(() {
-            currentIndex = index;
-          });
-        },
-        backgroundColor: navigationColor,
-        indicatorColor:
-            activeColor.withValues(alpha: 0.12),
-        destinations: [
-          NavigationDestination(
-            icon: Icon(
-              Icons.access_time,
-              color: inactiveColor,
+          // Dark/Light overlay
+          Positioned.fill(
+            child: Container(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.45)
+                  : Colors.white.withValues(alpha: 0.01),
             ),
-            selectedIcon: Icon(
-              Icons.access_time,
-              color: activeColor,
-            ),
-            label: 'Prayer Times',
           ),
-          NavigationDestination(
-            icon: Icon(
-              Icons.explore_outlined,
-              color: inactiveColor,
-            ),
-            selectedIcon: Icon(
-              Icons.explore,
-              color: activeColor,
-            ),
-            label: 'Qibla',
-          ),
-          NavigationDestination(
-            icon: Icon(
-              Icons.menu_book_outlined,
-              color: inactiveColor,
-            ),
-            selectedIcon: Icon(
-              Icons.menu_book,
-              color: activeColor,
-            ),
-            label: 'Azkar',
-          ),
-          NavigationDestination(
-            icon: Icon(
-              Icons.settings_outlined,
-              color: inactiveColor,
-            ),
-            selectedIcon: Icon(
-              Icons.settings,
-              color: activeColor,
-            ),
-            label: 'Settings',
+
+          // Main content
+          SafeArea(
+            child: currentIndex == 0
+                ? _buildPrayerTimesContent()
+                : _buildPlaceholderContent(),
           ),
         ],
+      ),
+
+      // Floating Bottom Navigation
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            16,
+            8,
+            16,
+            10,
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Container(
+              decoration: BoxDecoration(
+                color: navigationColor.withValues(
+                  alpha: 0.95,
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: NavigationBar(
+                selectedIndex: currentIndex,
+
+                onDestinationSelected: (index) {
+                  setState(() {
+                    currentIndex = index;
+                  });
+                },
+
+                // Transparent NavigationBar.
+                // The outer Container controls the shape.
+                backgroundColor: Colors.transparent,
+
+                elevation: 0,
+                shadowColor: Colors.transparent,
+                surfaceTintColor: Colors.transparent,
+
+                // Selected item indicator.
+                indicatorColor: activeColor.withValues(
+                  alpha: 0.12,
+                ),
+
+                destinations: [
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.access_time,
+                      color: inactiveColor,
+                    ),
+                    selectedIcon: Icon(
+                      Icons.access_time,
+                      color: activeColor,
+                    ),
+                    label: 'Prayer Times',
+                  ),
+
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.explore_outlined,
+                      color: inactiveColor,
+                    ),
+                    selectedIcon: Icon(
+                      Icons.explore,
+                      color: activeColor,
+                    ),
+                    label: 'Qibla',
+                  ),
+
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.menu_book_outlined,
+                      color: inactiveColor,
+                    ),
+                    selectedIcon: Icon(
+                      Icons.menu_book,
+                      color: activeColor,
+                    ),
+                    label: 'Azkar',
+                  ),
+
+                  NavigationDestination(
+                    icon: Icon(
+                      Icons.settings_outlined,
+                      color: inactiveColor,
+                    ),
+                    selectedIcon: Icon(
+                      Icons.settings,
+                      color: activeColor,
+                    ),
+                    label: 'Settings',
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -137,39 +181,42 @@ class _PrayerTimesScreenState
               20,
               12,
             ),
-          child: Column(
-  crossAxisAlignment: CrossAxisAlignment.start,
-  children: [
-    const PrayerTimesHeader(
-      location: 'Cairo, Egypt',
-      hijriDate: '10 Ramadan 1447',
-      gregorianDate: '28 February 2026',
-    ),
+            child: Column(
+              crossAxisAlignment:
+                  CrossAxisAlignment.start,
+              children: [
+                const PrayerTimesHeader(
+                  location: 'Cairo, Egypt',
+                  hijriDate: '10 Ramadan 1447',
+                  gregorianDate:
+                      '28 February 2026',
+                ),
 
-    const SizedBox(height: 6),
+                const SizedBox(height: 6),
 
-    SizedBox(
-      height: 220,
-      child: const PrayerTimesHero(
-        prayerName: 'Dhuhr',
-        prayerTime: '12:58 PM',
-        countdown: '02:34:18',
-        progress: 0.65,
-      ),
-    ),
+                SizedBox(
+                  height: 220,
+                  child: const PrayerTimesHero(
+                    prayerName: 'Dhuhr',
+                    prayerTime: '12:58 PM',
+                    countdown: '02:34:18',
+                    progress: 0.65,
+                  ),
+                ),
 
-    const SizedBox(height: 4),
+                const SizedBox(height: 4),
 
-    const Expanded(
-      child: PrayerTimesList(
-        activePrayer: 'Dhuhr',
-      ),
-    ),
-  ],
-),),
+                const Expanded(
+                  child: PrayerTimesList(
+                    activePrayer: 'Dhuhr',
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
 
-        // Future content goes here.
+        // Future content
         SliverToBoxAdapter(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(

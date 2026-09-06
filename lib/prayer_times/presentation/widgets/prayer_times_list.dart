@@ -71,7 +71,7 @@ class PrayerTimesList extends StatelessWidget {
               vertical: 6,
             ),
            decoration: BoxDecoration(
-  color: cardColor.withValues(alpha: 0.91),
+  color: cardColor.withValues(alpha: 0.94),
   borderRadius: BorderRadius.circular(20),
 ),
             child: Column(
