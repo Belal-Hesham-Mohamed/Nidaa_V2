@@ -82,9 +82,10 @@ class DateModel {
   factory DateModel.fromJson(Map<String, dynamic> json) {
     final hijri = json['hijri'] as Map<String, dynamic>;
     final hijriMonth = hijri['month'] as Map<String, dynamic>;
+    final gregorian = json['gregorian'] as Map<String, dynamic>;
 
     return DateModel(
-      gregorian: json['readable'] as String,
+      gregorian: gregorian['date'] as String,
       hijri: '${hijri['date']} ${hijriMonth['en']} ${hijri['year']}',
     );
   }

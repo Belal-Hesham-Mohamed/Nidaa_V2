@@ -21,7 +21,6 @@ import 'package:nidaa_v2/location/manual_location/domain/usecase/get_manual_loca
 import 'package:nidaa_v2/location/manual_location/domain/usecase/get_saved_manual_location_usecase.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_local_datasource.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_remote_datasource.dart';
-import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 import 'package:nidaa_v2/prayer_times/data/repositories/prayer_times_repo.dart';
 import 'package:nidaa_v2/prayer_times/domain/repositories/prayer_times_repo_base.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.dart';
@@ -44,9 +43,9 @@ void setupServiceLocator() {
     Hive.box<ManualLocationModel>('manualLocationBox'),
   );
 
- sl.registerSingleton<Box<List<PrayerTimesModel>>>(
-  Hive.box<List<PrayerTimesModel>>('prayerTimesBox'),
-);
+  sl.registerSingleton<Box>(
+    Hive.box('prayerTimesBox'),
+  );
 
   // Internet connection
   sl.registerLazySingleton<InternetConnection>(() => InternetConnection());
@@ -123,7 +122,7 @@ sl.registerLazySingleton<GetPrayerTimesWithCacheUsecase>(
 
   // Local prayer times datasource
   sl.registerLazySingleton<PrayerTimesLocalDataSource>(
-    () => PrayerTimesLocalDataSourceImpl(sl<Box<List<PrayerTimesModel>>>()),
+    () => PrayerTimesLocalDataSourceImpl(sl<Box>()),
   );
 
   // Prayer times datasource

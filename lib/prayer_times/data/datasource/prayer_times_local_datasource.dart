@@ -2,16 +2,16 @@ import 'package:hive/hive.dart';
 import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 
 abstract class PrayerTimesLocalDataSource {
-Future<void> savePrayerTimes(List<PrayerTimesModel> prayerTimes);
-Future<List<PrayerTimesModel>?> getSavedPrayerTimes();
+  Future<void> savePrayerTimes(List<PrayerTimesModel> prayerTimes);
+  Future<List<PrayerTimesModel>?> getSavedPrayerTimes();
   Future<void> deletePrayerTimes();
   Future<PrayerTimesModel?> getPrayerTimesForDate({
-  required String date,
-});
+    required String date,
+  });
 }
 
 class PrayerTimesLocalDataSourceImpl implements PrayerTimesLocalDataSource {
-  final Box<List<PrayerTimesModel>> box;
+  final Box box;
 
   PrayerTimesLocalDataSourceImpl(this.box);
 
@@ -24,7 +24,7 @@ class PrayerTimesLocalDataSourceImpl implements PrayerTimesLocalDataSource {
 
   @override
   Future<List<PrayerTimesModel>?> getSavedPrayerTimes() async {
-    return box.get('prayer_times');
+    return _readPrayerTimesList();
   }
 
   @override
@@ -32,23 +32,36 @@ class PrayerTimesLocalDataSourceImpl implements PrayerTimesLocalDataSource {
     await box.delete('prayer_times');
   }
 
-  
-@override
-Future<PrayerTimesModel?> getPrayerTimesForDate({
-  required String date,
-}) async {
-  final savedPrayerTimes = box.get('prayer_times');
+  @override
+  Future<PrayerTimesModel?> getPrayerTimesForDate({
+    required String date,
+  }) async {
+    final savedPrayerTimes = _readPrayerTimesList();
 
-  if (savedPrayerTimes == null) {
+    if (savedPrayerTimes == null) {
+      return null;
+    }
+
+    for (final prayerTime in savedPrayerTimes) {
+      if (prayerTime.date.gregorian == date) {
+        return prayerTime;
+      }
+    }
+
     return null;
   }
 
-  for (final prayerTime in savedPrayerTimes) {
-    if (prayerTime.date.gregorian == date) {
-      return prayerTime;
-    }
-  }
+  List<PrayerTimesModel>? _readPrayerTimesList() {
+    final raw = box.get('prayer_times');
 
-  return null;
-}
+    if (raw == null) {
+      return null;
+    }
+
+    if (raw is! List) {
+      return null;
+    }
+
+    return raw.map((item) => item as PrayerTimesModel).toList();
+  }
 }

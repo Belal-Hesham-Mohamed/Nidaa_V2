@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:intl/intl.dart';
 import 'package:nidaa_v2/core/error/failuer.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_local_datasource.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_remote_datasource.dart';
@@ -33,13 +34,29 @@ Set<String> _getCachedMonths(
   List<PrayerTimesModel> savedPrayerTimes,
 ) {
   return savedPrayerTimes.map((prayerTime) {
-    final parts = prayerTime.date.gregorian.split('-');
-
-    final month = int.parse(parts[1]);
-    final year = int.parse(parts[2]);
-
-    return '$year-$month';
+    final date = _parseGregorianDate(prayerTime.date.gregorian);
+    return '${date.year}-${date.month}';
   }).toSet();
+}
+
+DateTime _parseGregorianDate(String value) {
+  final hyphenParts = value.split('-');
+  if (hyphenParts.length == 3) {
+    final day = int.tryParse(hyphenParts[0]);
+    final month = int.tryParse(hyphenParts[1]);
+    final year = int.tryParse(hyphenParts[2]);
+    if (day != null && month != null && year != null) {
+      return DateTime(year, month, day);
+    }
+  }
+
+  for (final pattern in ['dd MMM yyyy', 'd MMM yyyy']) {
+    try {
+      return DateFormat(pattern, 'en').parseStrict(value);
+    } catch (_) {}
+  }
+
+  throw FormatException('Invalid gregorian date: $value');
 }
 Set<String> _getMissingMonths(
   Set<String> requiredMonths,
