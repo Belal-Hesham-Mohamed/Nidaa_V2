@@ -144,6 +144,33 @@ Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates(
     );
   }
 }
+
+@override
+Future<Either<Failure, List<PrayerTimes>>> replaceCacheByCoordinates({
+  required DateTime today,
+  required double latitude,
+  required double longitude,
+}) async {
+  try {
+    final requiredMonths = _getRequiredMonths(today);
+
+    final newPrayerTimes = await _fetchMissingMonths(
+      requiredMonths,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    await localDataSource.savePrayerTimes(newPrayerTimes);
+
+    return Right(
+      newPrayerTimes.map(_toEntity).toList(),
+    );
+  } catch (_) {
+    return Left(
+      Failure('Something went wrong while fetching new location prayer times'),
+    );
+  }
+}
 Future<List<PrayerTimesModel>> _getPrayerTimesWithCacheByCoordinates({
   required DateTime today,
   required double latitude,

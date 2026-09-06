@@ -11,6 +11,11 @@ Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates(
   required double latitude,
   required double longitude,
 });
+Future<Either<Failure, List<PrayerTimes>>> replaceCacheByCoordinates({
+  required DateTime today,
+  required double latitude,
+  required double longitude,
+});
   Future<Either<Failure, PrayerTimes>> getTimingsByCoordinates({
     required double latitude,
     required double longitude,

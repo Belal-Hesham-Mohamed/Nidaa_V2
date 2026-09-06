@@ -20,4 +20,16 @@ class GetPrayerTimesWithCacheUsecase {
       longitude: longitude,
     );
   }
+
+  Future<Either<Failure, List<PrayerTimes>>> replaceCache({
+    required DateTime today,
+    required double latitude,
+    required double longitude,
+  }) async {
+    return await _prayerTimesRepository.replaceCacheByCoordinates(
+      today: today,
+      latitude: latitude,
+      longitude: longitude,
+    );
+  }
 }

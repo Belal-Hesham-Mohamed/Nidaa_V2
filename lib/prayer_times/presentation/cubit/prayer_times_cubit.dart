@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:intl/intl.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location_mode.dart';
@@ -130,24 +131,24 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
           ? locationNameParts.join(', ')
           : 'Current Location';
 
-      // 3. Check if location meaningfully changed
+      // 3. Compare previousLocation vs location using LocationRepo's meaningful location logic
       bool isMeaningfullyChanged = false;
       if (previousLocation != null && !isFallback) {
-        isMeaningfullyChanged = _isLocationMeaningfullyChanged(previousLocation!, location!);
+        isMeaningfullyChanged = !_isSameLocation(previousLocation!, location!);
       }
 
       if (isMeaningfullyChanged) {
         // Location CHANGED:
         // Do NOT delete old cache first. Fetch prayer times for NEW location first.
-        final newLocationResult = await _getPrayerTimesUsecase.getTimingsByCoordinates(
+        final replaceResult = await _getPrayerTimesWithCacheUsecase.replaceCache(
+          today: now,
           latitude: location!.latitude,
           longitude: location!.longitude,
-          date: dateStr,
         );
 
-        await newLocationResult.fold(
+        replaceResult.fold(
           (failure) async {
-            // API request failed -> keep old cache intact & use as fallback
+            // API FAILED -> Keep old cache untouched and fallback to cached data if available
             final fallbackCacheResult = await _getPrayerTimesWithCacheUsecase(
               today: now,
               latitude: location!.latitude,
@@ -172,40 +173,23 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
               },
             );
           },
-          (newPrayerTimes) async {
-            // API SUCCESS -> update cache for the new location
-            final cacheResult = await _getPrayerTimesWithCacheUsecase(
-              today: now,
-              latitude: location!.latitude,
-              longitude: location!.longitude,
-            );
-
-            cacheResult.fold(
-              (_) => emit(
-                PrayerTimesSuccess(
-                  prayerTimes: newPrayerTimes,
-                  locationName: locationName,
-                  isFallbackLocation: isFallback,
-                ),
+          (newPrayerTimesList) {
+            // API SUCCESS -> Cache replaced with new location data
+            final todayPrayerTimes = _findTodayPrayerTimes(newPrayerTimesList);
+            emit(
+              PrayerTimesSuccess(
+                prayerTimes: todayPrayerTimes,
+                locationName: locationName,
+                isFallbackLocation: isFallback,
               ),
-              (prayerTimesList) {
-                final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
-                emit(
-                  PrayerTimesSuccess(
-                    prayerTimes: todayPrayerTimes,
-                    locationName: locationName,
-                    isFallbackLocation: isFallback,
-                  ),
-                );
-              },
             );
           },
         );
       } else {
         // Location UNCHANGED (or first launch / fallback):
         // Use GetPrayerTimesWithCacheUsecase.
-        // If required cache exists, it does NOT call the Prayer Times API.
-        // If cache is missing, it fetches only missing data and updates cache.
+        // If required cache exists, NO Prayer Times API request is made.
+        // If cache is missing, fetches only missing data and updates cache.
         final cachedListResult = await _getPrayerTimesWithCacheUsecase(
           today: now,
           latitude: location!.latitude,
@@ -233,22 +217,50 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
     }
   }
 
-  bool _isLocationMeaningfullyChanged(Location loc1, Location loc2) {
-    final country1 = (loc1.country ?? '').trim().toLowerCase();
-    final country2 = (loc2.country ?? '').trim().toLowerCase();
-    if (country1.isNotEmpty && country2.isNotEmpty && country1 != country2) {
+  bool _isSameLocation(Location oldLocation, Location newLocation) {
+    final oldCountry = _normalize(oldLocation.country);
+    final newCountry = _normalize(newLocation.country);
+
+    if (oldCountry.isNotEmpty && newCountry.isNotEmpty) {
+      if (oldCountry != newCountry) {
+        return false;
+      }
+    }
+
+    final oldCity = _normalize(oldLocation.city);
+    final newCity = _normalize(newLocation.city);
+    final oldAdministrativeArea = _normalize(oldLocation.administrativeArea);
+    final newAdministrativeArea = _normalize(newLocation.administrativeArea);
+    final oldSubLocality = _normalize(oldLocation.subLocality);
+    final newSubLocality = _normalize(newLocation.subLocality);
+
+    final hasTextMatch =
+        (oldCity.isNotEmpty && newCity.isNotEmpty && oldCity == newCity) ||
+        (oldAdministrativeArea.isNotEmpty &&
+            newAdministrativeArea.isNotEmpty &&
+            oldAdministrativeArea == newAdministrativeArea) ||
+        (oldSubLocality.isNotEmpty &&
+            newSubLocality.isNotEmpty &&
+            oldSubLocality == newSubLocality);
+
+    if (hasTextMatch) {
       return true;
     }
 
-    final city1 = (loc1.city ?? '').trim().toLowerCase();
-    final city2 = (loc2.city ?? '').trim().toLowerCase();
-    if (city1.isNotEmpty && city2.isNotEmpty && city1 != city2) {
-      return true;
-    }
+    final distanceInMeters = Geolocator.distanceBetween(
+      oldLocation.latitude,
+      oldLocation.longitude,
+      newLocation.latitude,
+      newLocation.longitude,
+    );
 
-    final latDiff = (loc1.latitude - loc2.latitude).abs();
-    final lngDiff = (loc1.longitude - loc2.longitude).abs();
-    return latDiff > 0.05 || lngDiff > 0.05;
+    const gpsThresholdInMeters = 100;
+    return distanceInMeters < gpsThresholdInMeters;
+  }
+
+  String _normalize(String? value) {
+    if (value == null) return '';
+    return value.trim().toLowerCase();
   }
 
   PrayerTimes _findTodayPrayerTimes(List<PrayerTimes> list) {
