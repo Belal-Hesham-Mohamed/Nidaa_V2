@@ -6,6 +6,7 @@ import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
 import 'package:nidaa_v2/location/manual_location/data/models/manual_location_model.dart';
 import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
+import 'package:nidaa_v2/prayer_times/presentation/screens/prayer_times_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
             supportedLocales: S.delegate.supportedLocales,
       title: 'Flutter Demo',
       theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const PrayerTimesScreen(),
     );
   }
 }

@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 
@@ -32,112 +34,253 @@ class PrayerTimesHero extends StatelessWidget {
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    final cardColor = isDark
-        ? AppColors.darkCard
-        : AppColors.lightCard;
+    final normalizedProgress =
+        progress.clamp(0.0, 1.0);
 
-    return Container(
+    return SizedBox(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-        horizontal: 24,
-        vertical: 28,
-      ),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(24),
-      ),
-      child: Column(
-        children: [
-          Text(
-            'Next Prayer',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: secondaryText,
+      child: AspectRatio(
+        aspectRatio: 1,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            CustomPaint(
+              size: const Size.square(320),
+              painter: _PrayerProgressPainter(
+                progress: normalizedProgress,
+                backgroundColor: isDark
+                    ? AppColors.darkSurface
+                    : AppColors.lightSecondaryBackground,
+                progressColor: accentColor,
+              ),
             ),
-          ),
 
-          const SizedBox(height: 8),
-
-          Text(
-            prayerName,
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-              color: accentColor,
-            ),
-          ),
-
-          const SizedBox(height: 6),
-
-          Text(
-            prayerTime,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: secondaryText,
-            ),
-          ),
-
-          const SizedBox(height: 28),
-
-          SizedBox(
-            width: 190,
-            height: 190,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  width: 190,
-                  height: 190,
-                  child: CircularProgressIndicator(
-                    value: 1,
-                    strokeWidth: 8,
-                    color: isDark
-                        ? AppColors.darkSurface
-                        : AppColors.lightSecondaryBackground,
-                  ),
-                ),
-
-                SizedBox(
-                  width: 190,
-                  height: 190,
-                  child: CircularProgressIndicator(
-                    value: progress.clamp(0.0, 1.0),
-                    strokeWidth: 8,
-                    strokeCap: StrokeCap.round,
-                    color: accentColor,
-                  ),
-                ),
-
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      countdown,
-                      style: TextStyle(
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                        color: primaryText,
-                      ),
+            Padding(
+              padding: const EdgeInsets.all(72),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    prayerName,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w700,
+                      color: primaryText,
                     ),
+                  ),
 
-                    const SizedBox(height: 4),
+                  const SizedBox(height: 18),
 
-                    Text(
-                      'remaining',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: secondaryText,
-                      ),
+                  Text(
+                    countdown,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 38,
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                      letterSpacing: 0.5,
                     ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  Text(
+                    'remaining',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w400,
+                      color: secondaryText,
+                    ),
+                  ),
+
+                  const SizedBox(height: 18),
+
+                  Text(
+                    prayerTime,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 21,
+                      fontWeight: FontWeight.w600,
+                      color: primaryText,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
+  }
+}
+
+class _PrayerProgressPainter extends CustomPainter {
+  final double progress;
+  final Color backgroundColor;
+  final Color progressColor;
+
+  _PrayerProgressPainter({
+    required this.progress,
+    required this.backgroundColor,
+    required this.progressColor,
+  });
+
+  @override
+  void paint(
+    Canvas canvas,
+    Size size,
+  ) {
+    final center = Offset(
+      size.width / 2,
+      size.height / 2,
+    );
+
+    final radius = size.width / 2 - 14;
+
+    const startAngle = -math.pi / 2;
+
+    final sweepAngle =
+        2 * math.pi * progress;
+
+    final rect = Rect.fromCircle(
+      center: center,
+      radius: radius,
+    );
+
+    // Background ring
+    final backgroundPaint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 8
+      ..color = backgroundColor;
+
+    canvas.drawCircle(
+      center,
+      radius,
+      backgroundPaint,
+    );
+
+    if (progress > 0) {
+      // Outer soft glow
+      final outerGlowPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 20
+        ..strokeCap = StrokeCap.round
+        ..color = progressColor.withValues(
+          alpha: 0.10,
+        )
+        ..maskFilter = const MaskFilter.blur(
+          BlurStyle.normal,
+          14,
+        );
+
+      canvas.drawArc(
+        rect,
+        startAngle,
+        sweepAngle,
+        false,
+        outerGlowPaint,
+      );
+
+      // Stronger inner glow
+      final innerGlowPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 14
+        ..strokeCap = StrokeCap.round
+        ..color = progressColor.withValues(
+          alpha: 0.22,
+        )
+        ..maskFilter = const MaskFilter.blur(
+          BlurStyle.normal,
+          7,
+        );
+
+      canvas.drawArc(
+        rect,
+        startAngle,
+        sweepAngle,
+        false,
+        innerGlowPaint,
+      );
+
+      // Main progress ring
+      final progressPaint = Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 8
+        ..strokeCap = StrokeCap.round
+        ..color = progressColor;
+
+      canvas.drawArc(
+        rect,
+        startAngle,
+        sweepAngle,
+        false,
+        progressPaint,
+      );
+
+      // Endpoint position
+      final endAngle =
+          startAngle + sweepAngle;
+
+      final endpoint = Offset(
+        center.dx +
+            radius * math.cos(endAngle),
+        center.dy +
+            radius * math.sin(endAngle),
+      );
+
+      // Endpoint glow
+      final endpointGlowPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = progressColor.withValues(
+          alpha: 0.35,
+        )
+        ..maskFilter = const MaskFilter.blur(
+          BlurStyle.normal,
+          10,
+        );
+
+      canvas.drawCircle(
+        endpoint,
+        10,
+        endpointGlowPaint,
+      );
+
+      // Endpoint
+      final endpointPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = progressColor;
+
+      canvas.drawCircle(
+        endpoint,
+        6,
+        endpointPaint,
+      );
+
+      // Small white highlight
+      final highlightPaint = Paint()
+        ..style = PaintingStyle.fill
+        ..color = Colors.white.withValues(
+          alpha: 0.85,
+        );
+
+      canvas.drawCircle(
+        endpoint,
+        2,
+        highlightPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(
+    covariant _PrayerProgressPainter oldDelegate,
+  ) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.backgroundColor !=
+            backgroundColor ||
+        oldDelegate.progressColor !=
+            progressColor;
   }
 }
