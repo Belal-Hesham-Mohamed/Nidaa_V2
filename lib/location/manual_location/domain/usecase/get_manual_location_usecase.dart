@@ -1,7 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:country_state_city/country_state_city.dart' as location_data;
 import 'package:nidaa_v2/core/error/failuer.dart';
 import 'package:nidaa_v2/location/manual_location/domain/entities/manual_location.dart';
+import 'package:nidaa_v2/location/manual_location/domain/entities/manual_location_options.dart';
 import 'package:nidaa_v2/location/manual_location/domain/repositories/manual_location_repo_base.dart';
 
 class GetManualLocationUsecase {
@@ -21,15 +21,15 @@ class GetManualLocationUsecase {
     );
   }
 
-  Future<List<location_data.Country>> getCountries() {
+  Future<List<ManualLocationCountry>> getCountries() {
     return _locationRepository.getCountries();
   }
 
-  Future<List<location_data.State>> getStates({required String countryCode}) {
+  Future<List<ManualLocationState>> getStates({required String countryCode}) {
     return _locationRepository.getStates(countryCode: countryCode);
   }
 
-  Future<List<location_data.City>> getCities({
+  Future<List<ManualLocationCity>> getCities({
     required String countryCode,
     required String stateCode,
   }) {

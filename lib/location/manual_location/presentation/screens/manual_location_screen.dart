@@ -1,7 +1,7 @@
-import 'package:country_state_city/country_state_city.dart' as location_data;
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/location/manual_location/domain/entities/manual_location.dart';
+import 'package:nidaa_v2/location/manual_location/domain/entities/manual_location_options.dart';
 import 'package:nidaa_v2/location/manual_location/domain/usecase/get_manual_location_usecase.dart';
 
 class ManualLocationScreen extends StatefulWidget {
@@ -17,13 +17,13 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
   GetManualLocationUsecase get _locationUsecase =>
       widget.usecase ?? sl<GetManualLocationUsecase>();
 
-  List<location_data.Country> _countries = [];
-  List<location_data.State> _states = [];
-  List<location_data.City> _cities = [];
+  List<ManualLocationCountry> _countries = [];
+  List<ManualLocationState> _states = [];
+  List<ManualLocationCity> _cities = [];
 
-  location_data.Country? _selectedCountry;
-  location_data.State? _selectedState;
-  location_data.City? _selectedCity;
+  ManualLocationCountry? _selectedCountry;
+  ManualLocationState? _selectedState;
+  ManualLocationCity? _selectedCity;
 
   bool _isLoadingCountries = true;
   bool _isLoadingStates = false;
@@ -59,7 +59,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
   }
 
   Future<void> _selectCountry() async {
-    final country = await _showSelectionSheet<location_data.Country>(
+    final country = await _showSelectionSheet<ManualLocationCountry>(
       title: 'Select Country',
       items: _countries,
       labelBuilder: (item) => item.name,
@@ -101,7 +101,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
   Future<void> _selectState() async {
     if (_selectedCountry == null || _states.isEmpty) return;
 
-    final state = await _showSelectionSheet<location_data.State>(
+    final state = await _showSelectionSheet<ManualLocationState>(
       title: 'Select State',
       items: _states,
       labelBuilder: (item) => item.name,
@@ -144,7 +144,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
       return;
     }
 
-    final city = await _showSelectionSheet<location_data.City>(
+    final city = await _showSelectionSheet<ManualLocationCity>(
       title: 'Select City',
       items: _cities,
       labelBuilder: (item) => item.name,
