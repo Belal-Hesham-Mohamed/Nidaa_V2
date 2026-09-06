@@ -95,9 +95,12 @@ List<PrayerTimesModel> _mergePrayerTimes(
 
   return uniquePrayerTimes.values.toList();
 }
+// Kept for the existing city-calendar path; manual locations now pass state.
+// ignore: unused_element
 Future<List<PrayerTimesModel>> _fetchMissingMonthsByCity(
   Set<String> missingMonths, {
   required String city,
+  required String state,
   required String country,
 }) async {
   final allPrayerTimes = <PrayerTimesModel>[];
@@ -108,6 +111,7 @@ Future<List<PrayerTimesModel>> _fetchMissingMonthsByCity(
     final prayerTimes =
         await remoteDataSource.getCalendarByCity(
       city: city,
+      state: state,
       country: country,
       month: monthData['month']!,
       year: monthData['year']!,
@@ -277,13 +281,15 @@ Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
   @override
   Future<Either<Failure, PrayerTimes>> getTimingsByCity({
     required String city,
+    required String state,
     required String country,
     required String date,
   }) async {
     try {
       final prayerTimes =
-          await remoteDataSource.getTimingsByCity(
+          await _getTimingsByManualLocation(
         city: city,
+        state: state,
         country: country,
         date: date,
       );
@@ -304,14 +310,16 @@ Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
   Future<Either<Failure, List<PrayerTimes>>>
       getCalendarByCity({
     required String city,
+    required String state,
     required String country,
     required int month,
     required int year,
   }) async {
     try {
       final prayerTimes =
-          await remoteDataSource.getCalendarByCity(
+          await _getCalendarByManualLocation(
         city: city,
+        state: state,
         country: country,
         month: month,
         year: year,
@@ -355,5 +363,52 @@ Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
         lastThird: model.night.lastThird,
       ),
     );
+  }
+
+  Future<PrayerTimesModel> _getTimingsByManualLocation({
+    required String city,
+    required String state,
+    required String country,
+    required String date,
+  }) async {
+    try {
+      return await remoteDataSource.getTimingsByCity(
+        city: city,
+        state: state,
+        country: country,
+        date: date,
+      );
+    } catch (_) {
+      return remoteDataSource.getTimingsByAddress(
+        state: state,
+        country: country,
+        date: date,
+      );
+    }
+  }
+
+  Future<List<PrayerTimesModel>> _getCalendarByManualLocation({
+    required String city,
+    required String state,
+    required String country,
+    required int month,
+    required int year,
+  }) async {
+    try {
+      return await remoteDataSource.getCalendarByCity(
+        city: city,
+        state: state,
+        country: country,
+        month: month,
+        year: year,
+      );
+    } catch (_) {
+      return remoteDataSource.getCalendarByAddress(
+        state: state,
+        country: country,
+        month: month,
+        year: year,
+      );
+    }
   }
 }

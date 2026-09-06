@@ -36,11 +36,13 @@ class GetPrayerTimesUsecase {
 
   Future<Either<Failure, PrayerTimes>> getTimingsByCity({
     required String city,
+    required String state,
     required String country,
     required String date,
   }) async {
     return await _prayerTimesRepository.getTimingsByCity(
       city: city,
+      state: state,
       country: country,
       date: date,
     );
@@ -48,12 +50,14 @@ class GetPrayerTimesUsecase {
 
   Future<Either<Failure, List<PrayerTimes>>> getCalendarByCity({
     required String city,
+    required String state,
     required String country,
     required int month,
     required int year,
   }) async {
     return await _prayerTimesRepository.getCalendarByCity(
       city: city,
+      state: state,
       country: country,
       month: month,
       year: year,

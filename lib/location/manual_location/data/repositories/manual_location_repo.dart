@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:country_state_city/country_state_city.dart' as location_data;
 import 'package:nidaa_v2/core/error/failuer.dart';
 import 'package:nidaa_v2/location/manual_location/data/datasource/manual_location_datasource.dart';
 import 'package:nidaa_v2/location/manual_location/data/datasource/manual_location_local_datasource.dart';
@@ -14,11 +15,13 @@ class ManualLocationRepo implements ManualLocationRepoBase {
   @override
   Future<Either<Failure, ManualLocation>> getLocation({
     required String country,
+    required String state,
     required String city,
   }) async {
     try {
       final newLocation = await datasource.getLocationData(
         country: country,
+        state: state,
         city: city,
       );
 
@@ -68,7 +71,30 @@ class ManualLocationRepo implements ManualLocationRepoBase {
     final oldCity = _normalize(oldLocation.city);
     final newCity = _normalize(newLocation.city);
 
-    return oldCountry == newCountry && oldCity == newCity;
+    final oldState = _normalize(oldLocation.state);
+    final newState = _normalize(newLocation.state);
+
+    return oldCountry == newCountry &&
+        oldState == newState &&
+        oldCity == newCity;
+  }
+
+  @override
+  Future<List<location_data.Country>> getCountries() {
+    return datasource.getCountries();
+  }
+
+  @override
+  Future<List<location_data.State>> getStates({required String countryCode}) {
+    return datasource.getStates(countryCode: countryCode);
+  }
+
+  @override
+  Future<List<location_data.City>> getCities({
+    required String countryCode,
+    required String stateCode,
+  }) {
+    return datasource.getCities(countryCode: countryCode, stateCode: stateCode);
   }
 
   String _normalize(String? value) {

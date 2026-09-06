@@ -18,6 +18,7 @@ class ManualLocationModelAdapter extends TypeAdapter<ManualLocationModel> {
     };
     return ManualLocationModel(
       country: fields[0] as String?,
+      state: fields[2] as String?,
       city: fields[1] as String?,
     );
   }
@@ -25,11 +26,13 @@ class ManualLocationModelAdapter extends TypeAdapter<ManualLocationModel> {
   @override
   void write(BinaryWriter writer, ManualLocationModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(3)
       ..writeByte(0)
       ..write(obj.country)
       ..writeByte(1)
-      ..write(obj.city);
+      ..write(obj.city)
+      ..writeByte(2)
+      ..write(obj.state);
   }
 
   @override

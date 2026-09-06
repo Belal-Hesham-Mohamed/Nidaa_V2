@@ -26,24 +26,49 @@ class PrayerTimesApiConstants {
 
   static String timingsByCity({
     required String city,
+    required String state,
     required String country,
     required String date,
   }) {
     return '$baseUrl/timingsByCity/$date'
         '?city=$city'
+        '&state=$state'
         '&country=$country'
         '&method=5';
   }
 
   static String calendarByCity({
     required String city,
+    required String state,
     required String country,
     required int month,
     required int year,
   }) {
     return '$baseUrl/calendarByCity/$year/$month'
         '?city=$city'
+        '&state=$state'
         '&country=$country'
+        '&method=5';
+  }
+
+  static String timingsByAddress({
+    required String state,
+    required String country,
+    required String date,
+  }) {
+    return '$baseUrl/timingsByAddress/$date'
+        '?address=$state, $country'
+        '&method=5';
+  }
+
+  static String calendarByAddress({
+    required String state,
+    required String country,
+    required int month,
+    required int year,
+  }) {
+    return '$baseUrl/calendarByAddress/$year/$month'
+        '?address=$state, $country'
         '&method=5';
   }
 }

@@ -26,12 +26,14 @@ Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates(
 
   Future<Either<Failure, PrayerTimes>> getTimingsByCity({
     required String city,
+    required String state,
     required String country,
     required String date,
   });
 
   Future<Either<Failure, List<PrayerTimes>>> getCalendarByCity({
     required String city,
+    required String state,
     required String country,
     required int month,
     required int year,

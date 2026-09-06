@@ -29,6 +29,7 @@ environment:
 # versions available, run `flutter pub outdated`.
 dependencies:
   cupertino_icons: ^1.0.8
+  country_state_city: ^0.1.6
   dartz: ^0.10.1
   dio: ^5.11.0
   flutter:

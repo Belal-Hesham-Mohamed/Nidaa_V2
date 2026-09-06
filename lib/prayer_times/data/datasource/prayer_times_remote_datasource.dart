@@ -18,12 +18,27 @@ abstract class PrayerTimesRemoteDataSource {
 
   Future<PrayerTimesModel> getTimingsByCity({
     required String city,
+    required String state,
     required String country,
     required String date,
   });
 
   Future<List<PrayerTimesModel>> getCalendarByCity({
     required String city,
+    required String state,
+    required String country,
+    required int month,
+    required int year,
+  });
+
+  Future<PrayerTimesModel> getTimingsByAddress({
+    required String state,
+    required String country,
+    required String date,
+  });
+
+  Future<List<PrayerTimesModel>> getCalendarByAddress({
+    required String state,
     required String country,
     required int month,
     required int year,
@@ -74,12 +89,14 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
   @override
   Future<PrayerTimesModel> getTimingsByCity({
     required String city,
+    required String state,
     required String country,
     required String date,
   }) async {
     final response = await dio.get(
       PrayerTimesApiConstants.timingsByCity(
         city: city,
+        state: state,
         country: country,
         date: date,
       ),
@@ -91,6 +108,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
   @override
   Future<List<PrayerTimesModel>> getCalendarByCity({
     required String city,
+    required String state,
     required String country,
     required int month,
     required int year,
@@ -98,6 +116,43 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     final response = await dio.get(
       PrayerTimesApiConstants.calendarByCity(
         city: city,
+        state: state,
+        country: country,
+        month: month,
+        year: year,
+      ),
+    );
+
+    return _getDataList(response);
+  }
+
+  @override
+  Future<PrayerTimesModel> getTimingsByAddress({
+    required String state,
+    required String country,
+    required String date,
+  }) async {
+    final response = await dio.get(
+      PrayerTimesApiConstants.timingsByAddress(
+        state: state,
+        country: country,
+        date: date,
+      ),
+    );
+
+    return PrayerTimesModel.fromJson(_getDataMap(response));
+  }
+
+  @override
+  Future<List<PrayerTimesModel>> getCalendarByAddress({
+    required String state,
+    required String country,
+    required int month,
+    required int year,
+  }) async {
+    final response = await dio.get(
+      PrayerTimesApiConstants.calendarByAddress(
+        state: state,
         country: country,
         month: month,
         year: year,
