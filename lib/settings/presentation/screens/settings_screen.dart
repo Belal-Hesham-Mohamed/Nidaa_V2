@@ -1,8 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
-import 'package:nidaa_v2/core/dependency_injection.dart';
-import 'package:nidaa_v2/location/current_location/domain/entities/location_mode.dart';
-import 'package:nidaa_v2/location/current_location/domain/usecase/save_location_mode_usecase.dart';
 import 'package:nidaa_v2/location/manual_location/presentation/screens/manual_location_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -25,13 +22,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openLocationFlow() async {
-    final location = await Navigator.of(
+    await Navigator.of(
       context,
     ).push(MaterialPageRoute(builder: (_) => const ManualLocationScreen()));
-
-    if (location == null || !mounted) return;
-
-    await sl<SaveLocationModeUsecase>()(LocationMode.manual);
   }
 
   @override
