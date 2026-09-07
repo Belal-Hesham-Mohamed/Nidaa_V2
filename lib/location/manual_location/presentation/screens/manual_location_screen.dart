@@ -1,6 +1,5 @@
 import 'package:country_state_city/country_state_city.dart' as location_data;
 import 'package:csc_picker_plus/csc_picker_plus.dart';
-import 'package:csc_picker_plus/model/select_status_model.dart';
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
@@ -48,17 +47,15 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
 
   bool _useCurrentLocation = true;
   bool _isLoadingInitial = true;
+  bool _isPickerReady = false;
   bool _isSaving = false;
   bool _isResolvingLocationValue = false;
   String? _validationError;
 
-  // These three values are always the English/canonical values used by APIs
-  // and local storage.
   String? _countryValue;
   String? _stateValue;
   String? _cityValue;
 
-  // These three values are only for what the picker displays to the user.
   String? _countryDisplayValue;
   String? _stateDisplayValue;
   String? _cityDisplayValue;
@@ -106,12 +103,20 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
         _isLoadingInitial = false;
       });
 
-      if (mode == LocationMode.manual &&
-          (_countryValue != null ||
-              _stateValue != null ||
-              _cityValue != null)) {
+      if (mode == LocationMode.manual) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          _restoreArabicDisplayValues();
+          if (!mounted) return;
+          setState(() {
+            _isPickerReady = true;
+          });
+
+          if (_countryValue != null ||
+              _stateValue != null ||
+              _cityValue != null) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _restoreArabicDisplayValues();
+            });
+          }
         });
       }
     } catch (_) {
@@ -230,9 +235,6 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
 
       String? englishCity;
 
-      // csc_picker_plus stores the city name in its canonical/native dataset.
-      // Prefer the matching English entry from the existing country/state/city
-      // data package when one exists, then fall back to the picker value.
       if (englishCountry != null && englishCountry.isNotEmpty) {
         final countriesData = await location_data.getAllCountries();
         final countryData = countriesData.where((item) {
@@ -408,6 +410,15 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                   _useCurrentLocation = value;
                                   _validationError = null;
                                 });
+
+                                if (!value && !_isPickerReady) {
+                                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                                    if (!mounted) return;
+                                    setState(() {
+                                      _isPickerReady = true;
+                                    });
+                                  });
+                                }
                               },
                               activeThumbColor: accentColor,
                               secondary: Icon(
@@ -448,100 +459,101 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                 color: cardColor,
                                 borderRadius: BorderRadius.circular(16),
                               ),
-                              child: CSCPickerPlus(
-                                key: _pickerKey,
-                                layout: Layout.vertical,
-                                showStates: true,
-                                showCities: true,
-                                flagState: CountryFlag.ENABLE,
-                                countryStateLanguage: isArabic
-                                    ? CountryStateLanguage.arabic
-                                    : CountryStateLanguage.englishOrNative,
-                                cityLanguage: CityLanguage.native,
-                                currentCountry: _countryDisplayValue,
-                                currentState: _stateDisplayValue,
-                                currentCity: _cityDisplayValue,
-                                countrySearchPlaceholder:
-                                    S.of(context).manualLocationSelectCountry,
-                                stateSearchPlaceholder:
-                                    S.of(context).manualLocationSelectState,
-                                citySearchPlaceholder:
-                                    S.of(context).manualLocationSelectCity,
-                                countryDropdownLabel:
-                                    S.of(context).manualLocationCountry,
-                                stateDropdownLabel:
-                                    S.of(context).manualLocationState,
-                                cityDropdownLabel:
-                                    S.of(context).manualLocationCity,
-                                selectedItemStyle: TextStyle(
-                                  color: primaryText,
-                                  fontSize: 14,
-                                ),
-                                dropdownHeadingStyle: TextStyle(
-                                  color: primaryText,
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                                dropdownItemStyle: TextStyle(
-                                  color: primaryText,
-                                  fontSize: 14,
-                                ),
-                                dropdownDecoration: BoxDecoration(
-                                  color: cardColor,
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: secondaryText.withValues(alpha: 0.25),
-                                  ),
-                                ),
-                                disabledDropdownDecoration: BoxDecoration(
-                                  color: cardColor.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(12),
-                                  border: Border.all(
-                                    color: secondaryText.withValues(alpha: 0.15),
-                                  ),
-                                ),
-                                dropdownDialogRadius: 14,
-                                searchBarRadius: 12,
-                                onCountryChanged: (value) {
-                                  setState(() {
-                                    _isResolvingLocationValue = true;
-                                    _countryDisplayValue = value.trim().isEmpty
-                                        ? null
-                                        : value.trim();
-                                    _stateDisplayValue = null;
-                                    _cityDisplayValue = null;
-                                    _countryValue = null;
-                                    _stateValue = null;
-                                    _cityValue = null;
-                                    _validationError = null;
-                                  });
-                                  _resolveEnglishCountryAndState();
-                                },
-                                onStateChanged: (value) {
-                                  setState(() {
-                                    _isResolvingLocationValue = true;
-                                    _stateDisplayValue = value?.trim().isEmpty == true
-                                        ? null
-                                        : value?.trim();
-                                    _cityDisplayValue = null;
-                                    _stateValue = null;
-                                    _cityValue = null;
-                                    _validationError = null;
-                                  });
-                                  _resolveEnglishCountryAndState();
-                                },
-                                onCityChanged: (value) {
-                                  setState(() {
-                                    _isResolvingLocationValue = true;
-                                    _cityDisplayValue = value?.trim().isEmpty == true
-                                        ? null
-                                        : value?.trim();
-                                    _cityValue = null;
-                                    _validationError = null;
-                                  });
-                                  _resolveEnglishCity();
-                                },
-                              ),
+                              child: _isPickerReady
+                                  ? CSCPickerPlus(
+                                      key: _pickerKey,
+                                      layout: Layout.vertical,
+                                      showStates: true,
+                                      showCities: true,
+                                      flagState: CountryFlag.ENABLE,
+                                      countryStateLanguage: isArabic
+                                          ? CountryStateLanguage.arabic
+                                          : CountryStateLanguage.englishOrNative,
+                                      cityLanguage: CityLanguage.native,
+                                      currentCountry: _countryDisplayValue,
+                                      currentState: _stateDisplayValue,
+                                      currentCity: _cityDisplayValue,
+                                      countrySearchPlaceholder: S.of(context).manualLocationSelectCountry,
+                                      stateSearchPlaceholder: S.of(context).manualLocationSelectState,
+                                      citySearchPlaceholder: S.of(context).manualLocationSelectCity,
+                                      countryDropdownLabel: S.of(context).manualLocationCountry,
+                                      stateDropdownLabel: S.of(context).manualLocationState,
+                                      cityDropdownLabel: S.of(context).manualLocationCity,
+                                      selectedItemStyle: TextStyle(
+                                        color: primaryText,
+                                        fontSize: 14,
+                                      ),
+                                      dropdownHeadingStyle: TextStyle(
+                                        color: primaryText,
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                      dropdownItemStyle: TextStyle(
+                                        color: primaryText,
+                                        fontSize: 14,
+                                      ),
+                                      dropdownDecoration: BoxDecoration(
+                                        color: cardColor,
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: secondaryText.withValues(alpha: 0.25),
+                                        ),
+                                      ),
+                                      disabledDropdownDecoration: BoxDecoration(
+                                        color: cardColor.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(12),
+                                        border: Border.all(
+                                          color: secondaryText.withValues(alpha: 0.15),
+                                        ),
+                                      ),
+                                      dropdownDialogRadius: 14,
+                                      searchBarRadius: 12,
+                                      onCountryChanged: (value) {
+                                        setState(() {
+                                          _isResolvingLocationValue = true;
+                                          _countryDisplayValue = value.trim().isEmpty
+                                              ? null
+                                              : value.trim();
+                                          _stateDisplayValue = null;
+                                          _cityDisplayValue = null;
+                                          _countryValue = null;
+                                          _stateValue = null;
+                                          _cityValue = null;
+                                          _validationError = null;
+                                        });
+                                        _resolveEnglishCountryAndState();
+                                      },
+                                      onStateChanged: (value) {
+                                        setState(() {
+                                          _isResolvingLocationValue = true;
+                                          _stateDisplayValue = value?.trim().isEmpty == true
+                                              ? null
+                                              : value?.trim();
+                                          _cityDisplayValue = null;
+                                          _stateValue = null;
+                                          _cityValue = null;
+                                          _validationError = null;
+                                        });
+                                        _resolveEnglishCountryAndState();
+                                      },
+                                      onCityChanged: (value) {
+                                        setState(() {
+                                          _isResolvingLocationValue = true;
+                                          _cityDisplayValue = value?.trim().isEmpty == true
+                                              ? null
+                                              : value?.trim();
+                                          _cityValue = null;
+                                          _validationError = null;
+                                        });
+                                        _resolveEnglishCity();
+                                      },
+                                    )
+                                  : const SizedBox(
+                                      height: 120,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
                             ),
                           ],
                           if (_validationError != null) ...[
@@ -552,8 +564,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                 color: AppColors.error.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color:
-                                      AppColors.error.withValues(alpha: 0.3),
+                                  color: AppColors.error.withValues(alpha: 0.3),
                                 ),
                               ),
                               child: Row(
