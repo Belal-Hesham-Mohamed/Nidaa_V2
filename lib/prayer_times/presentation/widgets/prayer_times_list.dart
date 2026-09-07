@@ -16,12 +16,12 @@ class PrayerTimesList extends StatelessWidget {
   List<Map<String, String>> _getPrayerItems(S s) {
     if (timings != null) {
       return [
-        {'name': s.prayerFajr, 'time': timings!.fajr},
-        {'name': s.prayerSunrise, 'time': timings!.sunrise},
-        {'name': s.prayerDhuhr, 'time': timings!.dhuhr},
-        {'name': s.prayerAsr, 'time': timings!.asr},
-        {'name': s.prayerMaghrib, 'time': timings!.maghrib},
-        {'name': s.prayerIsha, 'time': timings!.isha},
+        {'name': s.prayerFajr, 'time': _removeTimezoneSuffix(timings!.fajr)},
+        {'name': s.prayerSunrise, 'time': _removeTimezoneSuffix(timings!.sunrise)},
+        {'name': s.prayerDhuhr, 'time': _removeTimezoneSuffix(timings!.dhuhr)},
+        {'name': s.prayerAsr, 'time': _removeTimezoneSuffix(timings!.asr)},
+        {'name': s.prayerMaghrib, 'time': _removeTimezoneSuffix(timings!.maghrib)},
+        {'name': s.prayerIsha, 'time': _removeTimezoneSuffix(timings!.isha)},
       ];
     }
     return [
@@ -32,6 +32,33 @@ class PrayerTimesList extends StatelessWidget {
       {'name': s.prayerMaghrib, 'time': '07:54 PM'},
       {'name': s.prayerIsha, 'time': '09:21 PM'},
     ];
+  }
+
+  String _removeTimezoneSuffix(String value) {
+    var result = value.trim();
+
+    result = result.replaceFirst(RegExp(r'\s*\([^)]*\)\s*$'), '');
+
+    const timezoneSuffixes = [
+      'EEST',
+      'EET',
+      'GMT',
+      'UTC',
+      'BST',
+      'CET',
+      'CEST',
+      'WET',
+      'WEST',
+    ];
+
+    for (final timezone in timezoneSuffixes) {
+      result = result.replaceFirst(
+        RegExp(r'\s+' + timezone + r'\s*$', caseSensitive: false),
+        '',
+      );
+    }
+
+    return result.trim();
   }
 
   @override
