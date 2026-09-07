@@ -399,11 +399,10 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                     Expanded(
                       child: ListView(
                         children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              color: cardColor,
-                              borderRadius: BorderRadius.circular(16),
-                            ),
+                          Material(
+                            color: cardColor,
+                            borderRadius: BorderRadius.circular(16),
+                            clipBehavior: Clip.antiAlias,
                             child: SwitchListTile(
                               value: _useCurrentLocation,
                               onChanged: (value) {
@@ -512,80 +511,41 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                       onCountryChanged: (value) {
                                         setState(() {
                                           _isResolvingLocationValue = true;
-                                          _countryDisplayValue = value.trim().isEmpty
-                                              ? null
-                                              : value.trim();
+                                          _countryDisplayValue = value;
                                           _stateDisplayValue = null;
                                           _cityDisplayValue = null;
-                                          _countryValue = null;
                                           _stateValue = null;
                                           _cityValue = null;
-                                          _validationError = null;
                                         });
                                         _resolveEnglishCountryAndState();
                                       },
                                       onStateChanged: (value) {
                                         setState(() {
                                           _isResolvingLocationValue = true;
-                                          _stateDisplayValue = value?.trim().isEmpty == true
-                                              ? null
-                                              : value?.trim();
+                                          _stateDisplayValue = value;
                                           _cityDisplayValue = null;
-                                          _stateValue = null;
                                           _cityValue = null;
-                                          _validationError = null;
                                         });
                                         _resolveEnglishCountryAndState();
                                       },
                                       onCityChanged: (value) {
                                         setState(() {
                                           _isResolvingLocationValue = true;
-                                          _cityDisplayValue = value?.trim().isEmpty == true
-                                              ? null
-                                              : value?.trim();
-                                          _cityValue = null;
-                                          _validationError = null;
+                                          _cityDisplayValue = value;
                                         });
                                         _resolveEnglishCity();
                                       },
                                     )
-                                  : const SizedBox(
-                                      height: 120,
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                    ),
+                                  : const SizedBox.shrink(),
                             ),
                           ],
                           if (_validationError != null) ...[
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: AppColors.error.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: AppColors.error.withValues(alpha: 0.3),
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.error_outline,
-                                    color: AppColors.error,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Text(
-                                      _validationError!,
-                                      style: const TextStyle(
-                                        color: AppColors.error,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 12),
+                            Text(
+                              _validationError!,
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.error,
+                                fontSize: 13,
                               ),
                             ),
                           ],
@@ -595,7 +555,6 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
-                      height: 50,
                       child: ElevatedButton(
                         onPressed: _isSaving || _isResolvingLocationValue
                             ? null
@@ -603,26 +562,21 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: accentColor,
                           foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
                           ),
                         ),
-                        child: _isSaving || _isResolvingLocationValue
+                        child: _isSaving
                             ? const SizedBox(
-                                height: 22,
-                                width: 22,
+                                width: 20,
+                                height: 20,
                                 child: CircularProgressIndicator(
-                                  strokeWidth: 2.5,
+                                  strokeWidth: 2,
                                   color: Colors.white,
                                 ),
                               )
-                            : Text(
-                                S.of(context).manualLocationSaveButton,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                            : Text(S.of(context).save),
                       ),
                     ),
                   ],
