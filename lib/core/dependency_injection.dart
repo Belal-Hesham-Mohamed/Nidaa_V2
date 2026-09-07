@@ -58,7 +58,9 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
   );
 
   // Location datasource
-  sl.registerLazySingleton<LocationDatasource>(() => LocationDatasource());
+  sl.registerLazySingleton<LocationDatasource>(
+    () => LocationDatasource(sl<SettingsLocalDataSource>()),
+  );
 
   // Local location datasource
   sl.registerLazySingleton<LocationLocalDataSource>(
@@ -116,9 +118,9 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
   sl.registerLazySingleton<GetManualLocationUsecase>(
     () => GetManualLocationUsecase(sl<ManualLocationRepoBase>()),
   );
-sl.registerLazySingleton<GetPrayerTimesWithCacheUsecase>(
-  () => GetPrayerTimesWithCacheUsecase(sl()),
-);
+  sl.registerLazySingleton<GetPrayerTimesWithCacheUsecase>(
+    () => GetPrayerTimesWithCacheUsecase(sl()),
+  );
   sl.registerLazySingleton<GetSavedManualLocationUsecase>(
     () => GetSavedManualLocationUsecase(sl<ManualLocationRepoBase>()),
   );
