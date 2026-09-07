@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:intl/intl.dart';
 import 'package:nidaa_v2/core/settings/settings_local_datasource.dart';
 import 'package:nidaa_v2/location/current_location/data/exception/exception.dart'
     hide LocationServiceDisabledException;
@@ -39,15 +38,13 @@ class LocationDatasource {
       final position = await geo.Geolocator.getCurrentPosition();
 
       Placemark? placemark;
-      final savedLocaleCode = settingsLocalDataSource.getLocaleCode();
-      final languageCode = locale?.languageCode ??
-          savedLocaleCode ??
-          Intl.getCurrentLocale().split('_').first.split('-').first;
 
+      // Stored location values are canonical values. Reverse geocoding must
+      // therefore always use English, regardless of the app locale.
       final placemarks = await Geocoding().placemarkFromCoordinates(
         position.latitude,
         position.longitude,
-        locale: Locale(languageCode),
+        locale: const Locale('en'),
       );
 
       if (placemarks.isNotEmpty) {
