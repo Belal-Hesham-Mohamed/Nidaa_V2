@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:nidaa_v2/core/error/failuer.dart';
 import 'package:nidaa_v2/core/network/network_info.dart';
@@ -18,12 +19,10 @@ class LocationRepo implements LocationRepoBase {
   LocationRepo(this.datasource, this.localDataSource, this.networkInfo);
 
   @override
-  Future<Either<Failure, Location>> getLocation() async {
+  Future<Either<Failure, Location>> getLocation({Locale? locale}) async {
     try {
-      // 1. Check internet connection
       final hasInternet = await networkInfo.isConnected;
 
-      // 2. No internet → use saved location
       if (!hasInternet) {
         final savedLocation = await localDataSource.getSavedLocation();
 
@@ -34,30 +33,21 @@ class LocationRepo implements LocationRepoBase {
         return Left(Failure('No internet connection and no saved location'));
       }
 
-      // 3. Internet available → get new GPS/location
-      final newLocation = await datasource.getLocationData();
-
-      // 4. Get old location from Hive
+      final newLocation = await datasource.getLocationData(locale: locale);
       final oldLocation = await localDataSource.getSavedLocation();
 
-      // 5. First time → save new location
       if (oldLocation == null) {
         await localDataSource.saveLocation(newLocation);
-
         return Right(newLocation);
       }
 
-      // 6. Compare old and new location
       final isSameLocation = _isSameLocation(oldLocation, newLocation);
 
-      // 7. Same location → don't refresh Hive
       if (isSameLocation) {
-        return Right(oldLocation);
+        return Right(newLocation);
       }
 
-      // 8. Different location → update Hive
       await localDataSource.saveLocation(newLocation);
-
       return Right(newLocation);
     } on LocationServiceDisabledException {
       return Left(Failure('Location service is disabled'));
@@ -93,7 +83,6 @@ class LocationRepo implements LocationRepoBase {
   Future<Either<Failure, LocationMode>> getSavedLocationMode() async {
     try {
       final savedMode = await localDataSource.getSavedLocationMode();
-
       return Right(savedMode ?? LocationMode.current);
     } catch (_) {
       return Left(Failure('Something went wrong while getting location mode'));
@@ -106,7 +95,6 @@ class LocationRepo implements LocationRepoBase {
   ) async {
     try {
       await localDataSource.saveLocationMode(mode);
-
       return Right(mode);
     } catch (_) {
       return Left(Failure('Something went wrong while saving location mode'));
@@ -114,49 +102,6 @@ class LocationRepo implements LocationRepoBase {
   }
 
   bool _isSameLocation(Location oldLocation, Location newLocation) {
-    // --------------------------------------------------
-    // 1. Compare country first
-    // --------------------------------------------------
-
-    final oldCountry = _normalize(oldLocation.country);
-    final newCountry = _normalize(newLocation.country);
-
-    if (oldCountry.isNotEmpty && newCountry.isNotEmpty) {
-      if (oldCountry != newCountry) {
-        return false;
-      }
-    }
-
-    // --------------------------------------------------
-    // 2. Compare the other location information
-    // --------------------------------------------------
-
-    final oldCity = _normalize(oldLocation.city);
-    final newCity = _normalize(newLocation.city);
-
-    final oldAdministrativeArea = _normalize(oldLocation.administrativeArea);
-    final newAdministrativeArea = _normalize(newLocation.administrativeArea);
-
-    final oldSubLocality = _normalize(oldLocation.subLocality);
-    final newSubLocality = _normalize(newLocation.subLocality);
-
-    final hasTextMatch =
-        (oldCity.isNotEmpty && newCity.isNotEmpty && oldCity == newCity) ||
-        (oldAdministrativeArea.isNotEmpty &&
-            newAdministrativeArea.isNotEmpty &&
-            oldAdministrativeArea == newAdministrativeArea) ||
-        (oldSubLocality.isNotEmpty &&
-            newSubLocality.isNotEmpty &&
-            oldSubLocality == newSubLocality);
-
-    if (hasTextMatch) {
-      return true;
-    }
-
-    // --------------------------------------------------
-    // 3. No text match → compare GPS
-    // --------------------------------------------------
-
     final distanceInMeters = Geolocator.distanceBetween(
       oldLocation.latitude,
       oldLocation.longitude,
@@ -164,17 +109,7 @@ class LocationRepo implements LocationRepoBase {
       newLocation.longitude,
     );
 
-    // Change this threshold according to your business rule.
     const gpsThresholdInMeters = 100;
-
     return distanceInMeters < gpsThresholdInMeters;
-  }
-
-  String _normalize(String? value) {
-    if (value == null) {
-      return '';
-    }
-
-    return value.trim().toLowerCase();
   }
 }
