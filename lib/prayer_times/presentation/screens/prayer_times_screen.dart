@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:geocoding/geocoding.dart';
+import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
@@ -62,10 +62,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     if (locale.languageCode == 'en') return _canonicalLocationName(location);
 
     try {
-      final placemarks = await placemarkFromCoordinates(
+      final placemarks = await Geocoding().placemarkFromCoordinates(
         location.latitude,
         location.longitude,
-        localeIdentifier: locale.languageCode,
+        locale: Locale(locale.languageCode),
       );
 
       if (placemarks.isNotEmpty) {
