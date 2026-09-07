@@ -130,7 +130,6 @@ class PrayerTimesHeader extends StatelessWidget {
                 child: Text(
                   hijriDate,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
@@ -139,7 +138,7 @@ class PrayerTimesHeader extends StatelessWidget {
                 ),
               ),
 
-              const SizedBox(width: 8),
+              const SizedBox(width: 18),
 
               // Separator
               Container(
