@@ -56,212 +56,489 @@ class S {
   }
 
   /// `Nidaa`
-  String get appTitle => Intl.message(
-        'Nidaa',
-        name: 'appTitle',
-        desc: '',
-        args: [],
-      );
+  String get appTitle {
+    return Intl.message('Nidaa', name: 'appTitle', desc: '', args: []);
+  }
 
   /// `Prayer Times`
-  String get navPrayerTimes => Intl.message(
-        'Prayer Times',
-        name: 'navPrayerTimes',
-        desc: '',
-        args: [],
-      );
+  String get navPrayerTimes {
+    return Intl.message(
+      'Prayer Times',
+      name: 'navPrayerTimes',
+      desc: '',
+      args: [],
+    );
+  }
 
   /// `Qibla`
-  String get navQibla => Intl.message(
-        'Qibla',
-        name: 'navQibla',
-        desc: '',
-        args: [],
-      );
+  String get navQibla {
+    return Intl.message('Qibla', name: 'navQibla', desc: '', args: []);
+  }
 
   /// `Azkar`
-  String get navAzkar => Intl.message(
-        'Azkar',
-        name: 'navAzkar',
-        desc: '',
-        args: [],
-      );
+  String get navAzkar {
+    return Intl.message('Azkar', name: 'navAzkar', desc: '', args: []);
+  }
 
   /// `Settings`
-  String get navSettings => Intl.message(
-        'Settings',
-        name: 'navSettings',
-        desc: '',
-        args: [],
-      );
+  String get navSettings {
+    return Intl.message('Settings', name: 'navSettings', desc: '', args: []);
+  }
 
   /// `Coming Soon`
-  String get comingSoon => Intl.message(
-        'Coming Soon',
-        name: 'comingSoon',
-        desc: '',
-        args: [],
-      );
+  String get comingSoon {
+    return Intl.message('Coming Soon', name: 'comingSoon', desc: '', args: []);
+  }
 
   /// `Retry`
-  String get retry => Intl.message(
-        'Retry',
-        name: 'retry',
-        desc: '',
-        args: [],
-      );
+  String get retry {
+    return Intl.message('Retry', name: 'retry', desc: '', args: []);
+  }
 
   /// `remaining`
-  String get remaining => Intl.message(
-        'remaining',
-        name: 'remaining',
-        desc: '',
-        args: [],
-      );
+  String get remaining {
+    return Intl.message('remaining', name: 'remaining', desc: '', args: []);
+  }
 
   /// `(Saved)`
-  String get savedSuffix => Intl.message(
-        '(Saved)',
-        name: 'savedSuffix',
-        desc: '',
-        args: [],
-      );
+  String get savedSuffix {
+    return Intl.message('(Saved)', name: 'savedSuffix', desc: '', args: []);
+  }
 
   /// `Current Location`
-  String get currentLocationFallback => Intl.message(
-        'Current Location',
-        name: 'currentLocationFallback',
-        desc: '',
-        args: [],
-      );
+  String get currentLocationFallback {
+    return Intl.message(
+      'Current Location',
+      name: 'currentLocationFallback',
+      desc: '',
+      args: [],
+    );
+  }
 
-  String get weekdayMonday => Intl.message('Monday', name: 'weekdayMonday');
-  String get weekdayTuesday => Intl.message('Tuesday', name: 'weekdayTuesday');
-  String get weekdayWednesday =>
-      Intl.message('Wednesday', name: 'weekdayWednesday');
-  String get weekdayThursday =>
-      Intl.message('Thursday', name: 'weekdayThursday');
-  String get weekdayFriday => Intl.message('Friday', name: 'weekdayFriday');
-  String get weekdaySaturday =>
-      Intl.message('Saturday', name: 'weekdaySaturday');
-  String get weekdaySunday => Intl.message('Sunday', name: 'weekdaySunday');
+  /// `Monday`
+  String get weekdayMonday {
+    return Intl.message('Monday', name: 'weekdayMonday', desc: '', args: []);
+  }
 
-  String get prayerFajr => Intl.message('Fajr', name: 'prayerFajr');
-  String get prayerSunrise => Intl.message('Sunrise', name: 'prayerSunrise');
-  String get prayerDhuhr => Intl.message('Dhuhr', name: 'prayerDhuhr');
-  String get prayerAsr => Intl.message('Asr', name: 'prayerAsr');
-  String get prayerMaghrib => Intl.message('Maghrib', name: 'prayerMaghrib');
-  String get prayerIsha => Intl.message('Isha', name: 'prayerIsha');
+  /// `Tuesday`
+  String get weekdayTuesday {
+    return Intl.message('Tuesday', name: 'weekdayTuesday', desc: '', args: []);
+  }
 
-  String get errorNoSavedManualLocation => Intl.message(
-        'No saved manual location found. Please select a location in Settings.',
-        name: 'errorNoSavedManualLocation',
-      );
+  /// `Wednesday`
+  String get weekdayWednesday {
+    return Intl.message(
+      'Wednesday',
+      name: 'weekdayWednesday',
+      desc: '',
+      args: [],
+    );
+  }
 
-  String get errorManualLocationIncomplete => Intl.message(
-        'Saved manual location details are incomplete.',
-        name: 'errorManualLocationIncomplete',
-      );
+  /// `Thursday`
+  String get weekdayThursday {
+    return Intl.message(
+      'Thursday',
+      name: 'weekdayThursday',
+      desc: '',
+      args: [],
+    );
+  }
 
-  String get errorCurrentLocationUnavailable => Intl.message(
-        'Could not obtain current location. Please check GPS settings or connection.',
-        name: 'errorCurrentLocationUnavailable',
-      );
+  /// `Friday`
+  String get weekdayFriday {
+    return Intl.message('Friday', name: 'weekdayFriday', desc: '', args: []);
+  }
 
-  String get errorNoPrayerTimes => Intl.message(
-        'No prayer times available.',
-        name: 'errorNoPrayerTimes',
-      );
+  /// `Saturday`
+  String get weekdaySaturday {
+    return Intl.message(
+      'Saturday',
+      name: 'weekdaySaturday',
+      desc: '',
+      args: [],
+    );
+  }
 
-  String get settingsTitle => Intl.message('Settings', name: 'settingsTitle');
-  String get settingsSectionTheme =>
-      Intl.message('Theme', name: 'settingsSectionTheme');
-  String get settingsThemeLight =>
-      Intl.message('Light', name: 'settingsThemeLight');
-  String get settingsThemeDark =>
-      Intl.message('Dark', name: 'settingsThemeDark');
-  String get settingsThemeSystem =>
-      Intl.message('Device', name: 'settingsThemeSystem');
-  String get settingsSectionLanguage =>
-      Intl.message('Language', name: 'settingsSectionLanguage');
-  String get settingsLanguageEnglish =>
-      Intl.message('English', name: 'settingsLanguageEnglish');
-  String get settingsLanguageArabic =>
-      Intl.message('Arabic', name: 'settingsLanguageArabic');
-  String get settingsSectionLocation =>
-      Intl.message('Location', name: 'settingsSectionLocation');
-  String get settingsLocationTitle =>
-      Intl.message('Location', name: 'settingsLocationTitle');
-  String get settingsLocationDescription => Intl.message(
-        'Choose your location for accurate prayer times.',
-        name: 'settingsLocationDescription',
-      );
-  String get settingsPermissionsTitle =>
-      Intl.message('Permissions', name: 'settingsPermissionsTitle');
-  String get settingsPermissionsDescription =>
-      Intl.message('Manage app permissions',
-          name: 'settingsPermissionsDescription');
-  String get settingsAboutTitle =>
-      Intl.message('About Nidaa', name: 'settingsAboutTitle');
-  String get settingsAboutDescription => Intl.message(
-        'App information, privacy, and more',
-        name: 'settingsAboutDescription',
-      );
+  /// `Sunday`
+  String get weekdaySunday {
+    return Intl.message('Sunday', name: 'weekdaySunday', desc: '', args: []);
+  }
 
-  String get manualLocationTitle =>
-      Intl.message('Location Options', name: 'manualLocationTitle');
-  String get manualLocationUseCurrent => Intl.message(
-        'Use Current Location',
-        name: 'manualLocationUseCurrent',
-      );
-  String get manualLocationUseCurrentSubtitle => Intl.message(
-        'Automatically fetch prayer times using GPS',
-        name: 'manualLocationUseCurrentSubtitle',
-      );
-  String get manualLocationDetailsHeader => Intl.message(
-        'Manual Location Details',
-        name: 'manualLocationDetailsHeader',
-      );
-  String get manualLocationCountry =>
-      Intl.message('Country', name: 'manualLocationCountry');
-  String get manualLocationState => Intl.message(
-        'State / Governorate / Province',
-        name: 'manualLocationState',
-      );
-  String get manualLocationCity =>
-      Intl.message('City', name: 'manualLocationCity');
+  /// `Fajr`
+  String get prayerFajr {
+    return Intl.message('Fajr', name: 'prayerFajr', desc: '', args: []);
+  }
 
-  String manualLocationSelect(String label) => Intl.message(
-        'Select $label',
-        name: 'manualLocationSelect',
-        args: [label],
-      );
+  /// `Sunrise`
+  String get prayerSunrise {
+    return Intl.message('Sunrise', name: 'prayerSunrise', desc: '', args: []);
+  }
 
-  String get manualLocationSaveButton =>
-      Intl.message('Save Location Settings',
-          name: 'manualLocationSaveButton');
-  String get manualLocationSelectCountry =>
-      Intl.message('Select Country', name: 'manualLocationSelectCountry');
-  String get manualLocationSelectState => Intl.message(
-        'Select State / Governorate',
-        name: 'manualLocationSelectState',
-      );
-  String get manualLocationSelectCity =>
-      Intl.message('Select City', name: 'manualLocationSelectCity');
-  String get manualLocationFailedStates =>
-      Intl.message('Failed to load states',
-          name: 'manualLocationFailedStates');
-  String get manualLocationFailedCities =>
-      Intl.message('Failed to load cities',
-          name: 'manualLocationFailedCities');
-  String get manualLocationValidationError => Intl.message(
-        'Please select Country, State, and City before saving.',
-        name: 'manualLocationValidationError',
-      );
-  String get manualLocationSearchHint =>
-      Intl.message('Search...', name: 'manualLocationSearchHint');
-  String get manualLocationNoResults =>
-      Intl.message('No results found', name: 'manualLocationNoResults');
+  /// `Dhuhr`
+  String get prayerDhuhr {
+    return Intl.message('Dhuhr', name: 'prayerDhuhr', desc: '', args: []);
+  }
+
+  /// `Asr`
+  String get prayerAsr {
+    return Intl.message('Asr', name: 'prayerAsr', desc: '', args: []);
+  }
+
+  /// `Maghrib`
+  String get prayerMaghrib {
+    return Intl.message('Maghrib', name: 'prayerMaghrib', desc: '', args: []);
+  }
+
+  /// `Isha`
+  String get prayerIsha {
+    return Intl.message('Isha', name: 'prayerIsha', desc: '', args: []);
+  }
+
+  /// `No saved manual location found. Please select a location in Settings.`
+  String get errorNoSavedManualLocation {
+    return Intl.message(
+      'No saved manual location found. Please select a location in Settings.',
+      name: 'errorNoSavedManualLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Saved manual location details are incomplete.`
+  String get errorManualLocationIncomplete {
+    return Intl.message(
+      'Saved manual location details are incomplete.',
+      name: 'errorManualLocationIncomplete',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Could not obtain current location. Please check GPS settings or connection.`
+  String get errorCurrentLocationUnavailable {
+    return Intl.message(
+      'Could not obtain current location. Please check GPS settings or connection.',
+      name: 'errorCurrentLocationUnavailable',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No prayer times available.`
+  String get errorNoPrayerTimes {
+    return Intl.message(
+      'No prayer times available.',
+      name: 'errorNoPrayerTimes',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Settings`
+  String get settingsTitle {
+    return Intl.message('Settings', name: 'settingsTitle', desc: '', args: []);
+  }
+
+  /// `Theme`
+  String get settingsSectionTheme {
+    return Intl.message(
+      'Theme',
+      name: 'settingsSectionTheme',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Light`
+  String get settingsThemeLight {
+    return Intl.message(
+      'Light',
+      name: 'settingsThemeLight',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Dark`
+  String get settingsThemeDark {
+    return Intl.message('Dark', name: 'settingsThemeDark', desc: '', args: []);
+  }
+
+  /// `Device`
+  String get settingsThemeSystem {
+    return Intl.message(
+      'Device',
+      name: 'settingsThemeSystem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Language`
+  String get settingsSectionLanguage {
+    return Intl.message(
+      'Language',
+      name: 'settingsSectionLanguage',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `English`
+  String get settingsLanguageEnglish {
+    return Intl.message(
+      'English',
+      name: 'settingsLanguageEnglish',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Arabic`
+  String get settingsLanguageArabic {
+    return Intl.message(
+      'Arabic',
+      name: 'settingsLanguageArabic',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Location`
+  String get settingsSectionLocation {
+    return Intl.message(
+      'Location',
+      name: 'settingsSectionLocation',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Location`
+  String get settingsLocationTitle {
+    return Intl.message(
+      'Location',
+      name: 'settingsLocationTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Choose your location for accurate prayer times.`
+  String get settingsLocationDescription {
+    return Intl.message(
+      'Choose your location for accurate prayer times.',
+      name: 'settingsLocationDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Permissions`
+  String get settingsPermissionsTitle {
+    return Intl.message(
+      'Permissions',
+      name: 'settingsPermissionsTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manage app permissions`
+  String get settingsPermissionsDescription {
+    return Intl.message(
+      'Manage app permissions',
+      name: 'settingsPermissionsDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `About Nidaa`
+  String get settingsAboutTitle {
+    return Intl.message(
+      'About Nidaa',
+      name: 'settingsAboutTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `App information, privacy, and more`
+  String get settingsAboutDescription {
+    return Intl.message(
+      'App information, privacy, and more',
+      name: 'settingsAboutDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Location Options`
+  String get manualLocationTitle {
+    return Intl.message(
+      'Location Options',
+      name: 'manualLocationTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Use Current Location`
+  String get manualLocationUseCurrent {
+    return Intl.message(
+      'Use Current Location',
+      name: 'manualLocationUseCurrent',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Automatically fetch prayer times using GPS`
+  String get manualLocationUseCurrentSubtitle {
+    return Intl.message(
+      'Automatically fetch prayer times using GPS',
+      name: 'manualLocationUseCurrentSubtitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Manual Location Details`
+  String get manualLocationDetailsHeader {
+    return Intl.message(
+      'Manual Location Details',
+      name: 'manualLocationDetailsHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Country`
+  String get manualLocationCountry {
+    return Intl.message(
+      'Country',
+      name: 'manualLocationCountry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `State / Governorate / Province`
+  String get manualLocationState {
+    return Intl.message(
+      'State / Governorate / Province',
+      name: 'manualLocationState',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `City`
+  String get manualLocationCity {
+    return Intl.message('City', name: 'manualLocationCity', desc: '', args: []);
+  }
+
+  /// `Select {label}`
+  String manualLocationSelect(String label) {
+    return Intl.message(
+      'Select $label',
+      name: 'manualLocationSelect',
+      desc: '',
+      args: [label],
+    );
+  }
+
+  /// `Save Location Settings`
+  String get manualLocationSaveButton {
+    return Intl.message(
+      'Save Location Settings',
+      name: 'manualLocationSaveButton',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select Country`
+  String get manualLocationSelectCountry {
+    return Intl.message(
+      'Select Country',
+      name: 'manualLocationSelectCountry',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select State / Governorate`
+  String get manualLocationSelectState {
+    return Intl.message(
+      'Select State / Governorate',
+      name: 'manualLocationSelectState',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Select City`
+  String get manualLocationSelectCity {
+    return Intl.message(
+      'Select City',
+      name: 'manualLocationSelectCity',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to load states`
+  String get manualLocationFailedStates {
+    return Intl.message(
+      'Failed to load states',
+      name: 'manualLocationFailedStates',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Failed to load cities`
+  String get manualLocationFailedCities {
+    return Intl.message(
+      'Failed to load cities',
+      name: 'manualLocationFailedCities',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Please select Country, State, and City before saving.`
+  String get manualLocationValidationError {
+    return Intl.message(
+      'Please select Country, State, and City before saving.',
+      name: 'manualLocationValidationError',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Search...`
+  String get manualLocationSearchHint {
+    return Intl.message(
+      'Search...',
+      name: 'manualLocationSearchHint',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No results found`
+  String get manualLocationNoResults {
+    return Intl.message(
+      'No results found',
+      name: 'manualLocationNoResults',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {
