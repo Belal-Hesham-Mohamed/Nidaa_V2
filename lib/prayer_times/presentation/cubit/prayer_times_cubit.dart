@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geolocator/geolocator.dart';
@@ -34,7 +36,6 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
   Future<void> getPrayerTimes() async {
     emit(PrayerTimesLoading());
 
-    // 1. Determine location mode (Current vs Manual)
     final modeResult = await _getLocationModeUsecase();
     final mode = modeResult.fold(
       (_) => LocationMode.current,
@@ -45,7 +46,6 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
     final String dateStr = DateFormat('dd-MM-yyyy').format(now);
 
     if (mode == LocationMode.manual) {
-      // Manual Mode: NEVER request GPS! Use saved manual location only.
       final manualLocationResult = await _getSavedManualLocationUsecase();
       await manualLocationResult.fold(
         (failure) async {
@@ -57,9 +57,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
           final country = manualLocation.country ?? '';
 
           if (city.isEmpty && state.isEmpty && country.isEmpty) {
-            emit(PrayerTimesFailure(
-              PrayerTimesErrorKey.manualLocationIncomplete,
-            ));
+            emit(PrayerTimesFailure(PrayerTimesErrorKey.manualLocationIncomplete));
             return;
           }
 
@@ -81,175 +79,137 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
               PrayerTimesErrorKey.unknown,
               rawMessage: failure.message,
             )),
-            (prayerTimes) => emit(
-              PrayerTimesSuccess(
-                prayerTimes: prayerTimes,
-                locationName: locationName,
-                isFallbackLocation: false,
-              ),
-            ),
+            (prayerTimes) => emit(PrayerTimesSuccess(
+              prayerTimes: prayerTimes,
+              locationName: locationName,
+              isFallbackLocation: false,
+            )),
           );
         },
       );
-    } else {
-      // Current Mode Flow:
-      // 1. Get previously saved location before calling getLocation
-      Location? previousLocation;
-      final prevResult = await _getSavedCurrentLocationUsecase();
-      prevResult.fold((_) {}, (loc) => previousLocation = loc);
+      return;
+    }
 
-      Location? location;
-      bool isFallback = false;
+    Location? previousLocation;
+    final prevResult = await _getSavedCurrentLocationUsecase();
+    prevResult.fold((_) {}, (loc) => previousLocation = loc);
 
-      // 2. Fetch fresh GPS location using GetLocationUsecase
-      final freshLocationResult = await _getLocationUsecase();
-      freshLocationResult.fold(
-        (failure) {
-          isFallback = true;
-        },
-        (freshLoc) {
-          location = freshLoc;
-        },
+    Location? location;
+    bool isFallback = false;
+
+    final freshLocationResult = await _getLocationUsecase();
+    freshLocationResult.fold(
+      (failure) => isFallback = true,
+      (freshLoc) => location = freshLoc,
+    );
+
+    location ??= previousLocation;
+
+    if (location == null) {
+      emit(PrayerTimesFailure(PrayerTimesErrorKey.currentLocationUnavailable));
+      return;
+    }
+
+    final locationNameParts = <String>[];
+    if (location!.city != null && location!.city!.isNotEmpty) {
+      locationNameParts.add(location!.city!);
+    }
+    if (location!.country != null && location!.country!.isNotEmpty) {
+      locationNameParts.add(location!.country!);
+    }
+    final locationName = locationNameParts.isNotEmpty
+        ? locationNameParts.join(', ')
+        : 'Current Location';
+
+    bool isMeaningfullyChanged = false;
+    if (previousLocation != null && !isFallback) {
+      isMeaningfullyChanged = !_isSameLocation(previousLocation!, location!);
+    }
+
+    Future<void> emitWithPrayerTimes(PrayerTimes prayerTimes, {bool fallback = false}) async {
+      emit(PrayerTimesSuccess(
+        prayerTimes: prayerTimes,
+        locationName: locationName,
+        currentLocation: location,
+        isFallbackLocation: fallback,
+      ));
+    }
+
+    if (isMeaningfullyChanged) {
+      final replaceResult = await _getPrayerTimesWithCacheUsecase.replaceCache(
+        today: now,
+        latitude: location!.latitude,
+        longitude: location!.longitude,
       );
 
-      if (location == null && previousLocation != null) {
-        location = previousLocation;
-      }
+      await replaceResult.fold(
+        (failure) async {
+          final fallbackCacheResult = await _getPrayerTimesWithCacheUsecase(
+            today: now,
+            latitude: location!.latitude,
+            longitude: location!.longitude,
+          );
 
-      if (location == null) {
-        emit(PrayerTimesFailure(
-          PrayerTimesErrorKey.currentLocationUnavailable,
-        ));
-        return;
-      }
+          fallbackCacheResult.fold(
+            (_) => emit(PrayerTimesFailure(
+              PrayerTimesErrorKey.unknown,
+              rawMessage: failure.message,
+            )),
+            (prayerTimesList) {
+              if (prayerTimesList.isEmpty) {
+                emit(PrayerTimesFailure(PrayerTimesErrorKey.unknown, rawMessage: failure.message));
+                return;
+              }
+              final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
+              if (todayPrayerTimes == null) {
+                emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+                return;
+              }
+              emitWithPrayerTimes(todayPrayerTimes, fallback: true);
+            },
+          );
+        },
+        (newPrayerTimesList) {
+          final todayPrayerTimes = _findTodayPrayerTimes(newPrayerTimesList);
+          if (todayPrayerTimes == null) {
+            emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+            return;
+          }
+          emitWithPrayerTimes(todayPrayerTimes, fallback: isFallback);
+        },
+      );
+    } else {
+      final cachedListResult = await _getPrayerTimesWithCacheUsecase(
+        today: now,
+        latitude: location!.latitude,
+        longitude: location!.longitude,
+      );
 
-      final locationNameParts = <String>[];
-      if (location!.city != null && location!.city!.isNotEmpty) {
-        locationNameParts.add(location!.city!);
-      }
-      if (location!.country != null && location!.country!.isNotEmpty) {
-        locationNameParts.add(location!.country!);
-      }
-      final locationName = locationNameParts.isNotEmpty
-          ? locationNameParts.join(', ')
-          : 'Current Location';
-
-      // 3. Compare previousLocation vs location using LocationRepo's meaningful location logic
-      bool isMeaningfullyChanged = false;
-      if (previousLocation != null && !isFallback) {
-        isMeaningfullyChanged = !_isSameLocation(previousLocation!, location!);
-      }
-
-      if (isMeaningfullyChanged) {
-        // Location CHANGED:
-        // Do NOT delete old cache first. Fetch prayer times for NEW location first.
-        final replaceResult = await _getPrayerTimesWithCacheUsecase.replaceCache(
-          today: now,
-          latitude: location!.latitude,
-          longitude: location!.longitude,
-        );
-
-        replaceResult.fold(
-          (failure) async {
-            // API FAILED -> Keep old cache untouched and fallback to cached data if available
-            final fallbackCacheResult = await _getPrayerTimesWithCacheUsecase(
-              today: now,
-              latitude: location!.latitude,
-              longitude: location!.longitude,
-            );
-
-            fallbackCacheResult.fold(
-              (_) => emit(PrayerTimesFailure(
-                PrayerTimesErrorKey.unknown,
-                rawMessage: failure.message,
-              )),
-              (prayerTimesList) {
-                if (prayerTimesList.isEmpty) {
-                  emit(PrayerTimesFailure(
-                    PrayerTimesErrorKey.unknown,
-                    rawMessage: failure.message,
-                  ));
-                  return;
-                }
-                final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
-                if (todayPrayerTimes == null) {
-                  emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
-                  return;
-                }
-                emit(
-                  PrayerTimesSuccess(
-                    prayerTimes: todayPrayerTimes,
-                    locationName: locationName,
-                    isFallbackLocation: true,
-                  ),
-                );
-              },
-            );
-          },
-          (newPrayerTimesList) {
-            // API SUCCESS -> Cache replaced with new location data
-            final todayPrayerTimes = _findTodayPrayerTimes(newPrayerTimesList);
-            if (todayPrayerTimes == null) {
-              emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
-              return;
-            }
-            emit(
-              PrayerTimesSuccess(
-                prayerTimes: todayPrayerTimes,
-                locationName: locationName,
-                isFallbackLocation: isFallback,
-              ),
-            );
-          },
-        );
-      } else {
-        // Location UNCHANGED (or first launch / fallback):
-        // Use GetPrayerTimesWithCacheUsecase.
-        // If required cache exists, NO Prayer Times API request is made.
-        // If cache is missing, fetches only missing data and updates cache.
-        final cachedListResult = await _getPrayerTimesWithCacheUsecase(
-          today: now,
-          latitude: location!.latitude,
-          longitude: location!.longitude,
-        );
-
-        cachedListResult.fold(
-          (failure) => emit(PrayerTimesFailure(
-            PrayerTimesErrorKey.unknown,
-            rawMessage: failure.message,
-          )),
-          (prayerTimesList) {
-            if (prayerTimesList.isEmpty) {
-              emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
-              return;
-            }
-            final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
-            if (todayPrayerTimes == null) {
-              emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
-              return;
-            }
-            emit(
-              PrayerTimesSuccess(
-                prayerTimes: todayPrayerTimes,
-                locationName: locationName,
-                isFallbackLocation: isFallback,
-              ),
-            );
-          },
-        );
-      }
+      cachedListResult.fold(
+        (failure) => emit(PrayerTimesFailure(
+          PrayerTimesErrorKey.unknown,
+          rawMessage: failure.message,
+        )),
+        (prayerTimesList) {
+          if (prayerTimesList.isEmpty) {
+            emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+            return;
+          }
+          final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
+          if (todayPrayerTimes == null) {
+            emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+            return;
+          }
+          emitWithPrayerTimes(todayPrayerTimes, fallback: isFallback);
+        },
+      );
     }
   }
 
   bool _isSameLocation(Location oldLocation, Location newLocation) {
     final oldCountry = _normalize(oldLocation.country);
     final newCountry = _normalize(newLocation.country);
-
-    if (oldCountry.isNotEmpty && newCountry.isNotEmpty) {
-      if (oldCountry != newCountry) {
-        return false;
-      }
-    }
+    if (oldCountry.isNotEmpty && newCountry.isNotEmpty && oldCountry != newCountry) return false;
 
     final oldCity = _normalize(oldLocation.city);
     final newCity = _normalize(newLocation.city);
@@ -260,16 +220,10 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
 
     final hasTextMatch =
         (oldCity.isNotEmpty && newCity.isNotEmpty && oldCity == newCity) ||
-        (oldAdministrativeArea.isNotEmpty &&
-            newAdministrativeArea.isNotEmpty &&
-            oldAdministrativeArea == newAdministrativeArea) ||
-        (oldSubLocality.isNotEmpty &&
-            newSubLocality.isNotEmpty &&
-            oldSubLocality == newSubLocality);
+        (oldAdministrativeArea.isNotEmpty && newAdministrativeArea.isNotEmpty && oldAdministrativeArea == newAdministrativeArea) ||
+        (oldSubLocality.isNotEmpty && newSubLocality.isNotEmpty && oldSubLocality == newSubLocality);
 
-    if (hasTextMatch) {
-      return true;
-    }
+    if (hasTextMatch) return true;
 
     final distanceInMeters = Geolocator.distanceBetween(
       oldLocation.latitude,
@@ -282,10 +236,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
     return distanceInMeters < gpsThresholdInMeters;
   }
 
-  String _normalize(String? value) {
-    if (value == null) return '';
-    return value.trim().toLowerCase();
-  }
+  String _normalize(String? value) => value?.trim().toLowerCase() ?? '';
 
   PrayerTimes? _findTodayPrayerTimes(List<PrayerTimes> list) {
     final now = DateTime.now();
@@ -295,9 +246,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
 
     for (final pt in list) {
       final g = pt.date.gregorian.trim();
-      if (g == dateHyphen || g == dateReadable1 || g == dateReadable2) {
-        return pt;
-      }
+      if (g == dateHyphen || g == dateReadable1 || g == dateReadable2) return pt;
     }
 
     for (final pt in list) {
@@ -308,9 +257,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
           final day = int.tryParse(parts[0]);
           final month = int.tryParse(parts[1]);
           final year = int.tryParse(parts[2]);
-          if (day == now.day && month == now.month && year == now.year) {
-            return pt;
-          }
+          if (day == now.day && month == now.month && year == now.year) return pt;
         }
       }
     }
