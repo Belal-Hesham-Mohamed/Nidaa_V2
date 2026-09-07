@@ -3,6 +3,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
+import 'package:nidaa_v2/core/settings/settings_local_datasource.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
 import 'package:nidaa_v2/location/manual_location/data/models/manual_location_model.dart';
@@ -25,13 +26,17 @@ void main() async {
   await Hive.openBox<String>('locationModeBox');
   await Hive.openBox<ManualLocationModel>('manualLocationBox');
   await Hive.openBox('prayerTimesBox');
-  setupServiceLocator();
 
-  runApp(const MyApp());
+  final settingsLocalDataSource = await SettingsLocalDataSource.init();
+  setupServiceLocator(settingsLocalDataSource);
+
+  runApp(MyApp(settingsLocalDataSource: settingsLocalDataSource));
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  const MyApp({super.key, required this.settingsLocalDataSource});
+
+  final SettingsLocalDataSource settingsLocalDataSource;
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -39,7 +44,22 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
-  Locale _locale = const Locale('en');
+  late Locale _locale;
+
+  @override
+  void initState() {
+    super.initState();
+    final savedCode = widget.settingsLocalDataSource.getLocaleCode();
+    _locale = Locale(savedCode ?? 'en');
+  }
+
+  Future<void> _setLocale(Locale locale) async {
+    await widget.settingsLocalDataSource.saveLocaleCode(locale.languageCode);
+    if (!mounted) return;
+    setState(() {
+      _locale = locale;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +72,7 @@ class _MyAppState extends State<MyApp> {
                 GlobalCupertinoLocalizations.delegate,
             ],
             supportedLocales: S.delegate.supportedLocales,
-      title: 'Flutter Demo',
+      onGenerateTitle: (context) => S.of(context).appTitle,
       locale: _locale,
       themeMode: _themeMode,
       theme: ThemeData(
@@ -75,73 +95,7 @@ class _MyAppState extends State<MyApp> {
         themeMode: _themeMode,
         onThemeModeChanged: (mode) => setState(() => _themeMode = mode),
         locale: _locale,
-        onLocaleChanged: (locale) => setState(() => _locale = locale),
-      ),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        onLocaleChanged: _setLocale,
       ),
     );
   }

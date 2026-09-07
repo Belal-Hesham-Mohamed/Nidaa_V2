@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
+import 'package:nidaa_v2/generated/l10n.dart';
 
 class PrayerTimesHero extends StatelessWidget {
   final String prayerName;
@@ -99,7 +100,7 @@ class PrayerTimesHero extends StatelessWidget {
                       ),
 
                       Text(
-                        'remaining',
+                        S.of(context).remaining,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: circleSize * 0.045,

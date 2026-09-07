@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
+import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/manual_location/presentation/screens/manual_location_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -52,18 +53,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
       appBar: AppBar(
         backgroundColor: backgroundColor,
         foregroundColor: primaryText,
-        title: const Text('Settings'),
+        title: Text(S.of(context).settingsTitle),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
         children: [
-          _SectionTitle(title: 'Theme', color: primaryText),
+          _SectionTitle(
+            title: S.of(context).settingsSectionTheme,
+            color: primaryText,
+          ),
           const SizedBox(height: 10),
           _ChoiceRow<ThemeMode>(
-            options: const [
-              _Choice(label: 'Light', value: ThemeMode.light),
-              _Choice(label: 'Dark', value: ThemeMode.dark),
-              _Choice(label: 'Device', value: ThemeMode.system),
+            options: [
+              _Choice(label: S.of(context).settingsThemeLight, value: ThemeMode.light),
+              _Choice(label: S.of(context).settingsThemeDark, value: ThemeMode.dark),
+              _Choice(label: S.of(context).settingsThemeSystem, value: ThemeMode.system),
             ],
             selectedValue: widget.themeMode,
             onSelected: widget.onThemeModeChanged,
@@ -73,15 +77,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
             secondaryText: secondaryText,
           ),
           const SizedBox(height: 28),
-          _SectionTitle(title: 'Language', color: primaryText),
+          _SectionTitle(
+            title: S.of(context).settingsSectionLanguage,
+            color: primaryText,
+          ),
           const SizedBox(height: 10),
           _ChoiceRow<Locale>(
-            options: const [
-              _Choice(label: 'English', value: Locale('en')),
-              _Choice(
-                label: '\u{627}\u{644}\u{639}\u{631}\u{628}\u{64A}\u{629}',
-                value: Locale('ar'),
-              ),
+            options: [
+              _Choice(label: S.of(context).settingsLanguageEnglish, value: const Locale('en')),
+              _Choice(label: S.of(context).settingsLanguageArabic, value: const Locale('ar')),
             ],
             selectedValue: widget.locale,
             onSelected: widget.onLocaleChanged,
@@ -91,11 +95,14 @@ class _SettingsScreenState extends State<SettingsScreen> {
             secondaryText: secondaryText,
           ),
           const SizedBox(height: 28),
-          _SectionTitle(title: 'Location', color: primaryText),
+          _SectionTitle(
+            title: S.of(context).settingsSectionLocation,
+            color: primaryText,
+          ),
           const SizedBox(height: 10),
           _SettingsRow(
-            title: 'Location',
-            description: 'Choose your location for accurate prayer times.',
+            title: S.of(context).settingsLocationTitle,
+            description: S.of(context).settingsLocationDescription,
             onTap: _openLocationFlow,
             cardColor: cardColor,
             primaryText: primaryText,
@@ -104,8 +111,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           _SettingsRow(
-            title: 'Permissions',
-            description: 'Manage app permissions',
+            title: S.of(context).settingsPermissionsTitle,
+            description: S.of(context).settingsPermissionsDescription,
             onTap: () {},
             cardColor: cardColor,
             primaryText: primaryText,
@@ -114,8 +121,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           ),
           const SizedBox(height: 12),
           _SettingsRow(
-            title: 'About Nidaa',
-            description: 'App information, privacy, and more',
+            title: S.of(context).settingsAboutTitle,
+            description: S.of(context).settingsAboutDescription,
             onTap: () {},
             cardColor: cardColor,
             primaryText: primaryText,

@@ -49,9 +49,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
       final manualLocationResult = await _getSavedManualLocationUsecase();
       await manualLocationResult.fold(
         (failure) async {
-          emit(PrayerTimesFailure(
-            'No saved manual location found. Please select a location in Settings.',
-          ));
+          emit(PrayerTimesFailure(PrayerTimesErrorKey.noSavedManualLocation));
         },
         (manualLocation) async {
           final city = manualLocation.city ?? '';
@@ -59,7 +57,9 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
           final country = manualLocation.country ?? '';
 
           if (city.isEmpty && state.isEmpty && country.isEmpty) {
-            emit(PrayerTimesFailure('Saved manual location details are incomplete.'));
+            emit(PrayerTimesFailure(
+              PrayerTimesErrorKey.manualLocationIncomplete,
+            ));
             return;
           }
 
@@ -77,7 +77,10 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
           );
 
           prayerTimesResult.fold(
-            (failure) => emit(PrayerTimesFailure(failure.message)),
+            (failure) => emit(PrayerTimesFailure(
+              PrayerTimesErrorKey.unknown,
+              rawMessage: failure.message,
+            )),
             (prayerTimes) => emit(
               PrayerTimesSuccess(
                 prayerTimes: prayerTimes,
@@ -115,7 +118,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
 
       if (location == null) {
         emit(PrayerTimesFailure(
-          'Could not obtain current location. Please check GPS settings or connection.',
+          PrayerTimesErrorKey.currentLocationUnavailable,
         ));
         return;
       }
@@ -156,10 +159,16 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
             );
 
             fallbackCacheResult.fold(
-              (_) => emit(PrayerTimesFailure(failure.message)),
+              (_) => emit(PrayerTimesFailure(
+                PrayerTimesErrorKey.unknown,
+                rawMessage: failure.message,
+              )),
               (prayerTimesList) {
                 if (prayerTimesList.isEmpty) {
-                  emit(PrayerTimesFailure(failure.message));
+                  emit(PrayerTimesFailure(
+                    PrayerTimesErrorKey.unknown,
+                    rawMessage: failure.message,
+                  ));
                 } else {
                   final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
                   emit(
@@ -197,10 +206,13 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
         );
 
         cachedListResult.fold(
-          (failure) => emit(PrayerTimesFailure(failure.message)),
+          (failure) => emit(PrayerTimesFailure(
+            PrayerTimesErrorKey.unknown,
+            rawMessage: failure.message,
+          )),
           (prayerTimesList) {
             if (prayerTimesList.isEmpty) {
-              emit(PrayerTimesFailure('No prayer times available.'));
+              emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
               return;
             }
             final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);

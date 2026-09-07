@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
+import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location_mode.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_mode_usecase.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/save_location_mode_usecase.dart';
@@ -153,8 +154,9 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
   }
 
   Future<void> _selectCountry() async {
+    final s = S.of(context);
     final country = await _showSelectionSheet<ManualLocationCountry>(
-      title: 'Select Country',
+      title: s.manualLocationSelectCountry,
       items: _countries,
       labelBuilder: (item) => item.name,
     );
@@ -187,7 +189,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingStates = false;
-        _validationError = 'Failed to load states';
+        _validationError = s.manualLocationFailedStates;
       });
     }
   }
@@ -195,8 +197,9 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
   Future<void> _selectState() async {
     if (_selectedCountry == null || _states.isEmpty) return;
 
+    final s = S.of(context);
     final state = await _showSelectionSheet<ManualLocationState>(
-      title: 'Select State / Governorate',
+      title: s.manualLocationSelectState,
       items: _states,
       labelBuilder: (item) => item.name,
     );
@@ -228,7 +231,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
       if (!mounted) return;
       setState(() {
         _isLoadingCities = false;
-        _validationError = 'Failed to load cities';
+        _validationError = s.manualLocationFailedCities;
       });
     }
   }
@@ -236,8 +239,9 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
   Future<void> _selectCity() async {
     if (_selectedCountry == null || _selectedState == null || _cities.isEmpty) return;
 
+    final s = S.of(context);
     final city = await _showSelectionSheet<ManualLocationCity>(
-      title: 'Select City',
+      title: s.manualLocationSelectCity,
       items: _cities,
       labelBuilder: (item) => item.name,
     );
@@ -280,7 +284,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
       // CASE B: Current Location = OFF -> Validation required (Country, State, City)
       if (_selectedCountry == null || _selectedState == null || _selectedCity == null) {
         setState(() {
-          _validationError = 'Please select Country, State, and City before saving.';
+          _validationError = S.of(context).manualLocationValidationError;
         });
         return;
       }
@@ -370,7 +374,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
         backgroundColor: backgroundColor,
         foregroundColor: primaryText,
         elevation: 0,
-        title: const Text('Location Options'),
+        title: Text(S.of(context).manualLocationTitle),
       ),
       body: SafeArea(
         child: _isLoadingInitial
@@ -404,7 +408,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                 color: accentColor,
                               ),
                               title: Text(
-                                'Use Current Location',
+                                S.of(context).manualLocationUseCurrent,
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
@@ -412,7 +416,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                 ),
                               ),
                               subtitle: Text(
-                                'Automatically fetch prayer times using GPS',
+                                S.of(context).manualLocationUseCurrentSubtitle,
                                 style: TextStyle(
                                   fontSize: 13,
                                   color: secondaryText,
@@ -426,7 +430,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                           // Manual Location Selectors (Visible only when Current Location is OFF)
                           if (!_useCurrentLocation) ...[
                             Text(
-                              'Manual Location Details',
+                              S.of(context).manualLocationDetailsHeader,
                               style: TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w700,
@@ -437,7 +441,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
 
                             // Country Selector
                             _LocationSelectorCard(
-                              label: 'Country',
+                              label: S.of(context).manualLocationCountry,
                               value: _selectedCountry?.name,
                               cardColor: cardColor,
                               primaryText: primaryText,
@@ -449,7 +453,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
 
                             // State Selector
                             _LocationSelectorCard(
-                              label: 'State / Governorate / Province',
+                              label: S.of(context).manualLocationState,
                               value: _selectedState?.name,
                               cardColor: cardColor,
                               primaryText: primaryText,
@@ -463,7 +467,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
 
                             // City Selector
                             _LocationSelectorCard(
-                              label: 'City',
+                              label: S.of(context).manualLocationCity,
                               value: _selectedCity?.name,
                               cardColor: cardColor,
                               primaryText: primaryText,
@@ -528,9 +532,9 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : const Text(
-                                'Save Location Settings',
-                                style: TextStyle(
+                            : Text(
+                                S.of(context).manualLocationSaveButton,
+                                style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -593,7 +597,7 @@ class _LocationSelectorCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      value ?? 'Select $label',
+                      value ?? S.of(context).manualLocationSelect(label),
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: value != null ? FontWeight.w600 : FontWeight.w400,
@@ -710,7 +714,7 @@ class _SearchSelectionSheetState<T> extends State<_SearchSelectionSheet<T>> {
             autofocus: true,
             style: TextStyle(color: primaryText),
             decoration: InputDecoration(
-              hintText: 'Search...',
+              hintText: S.of(context).manualLocationSearchHint,
               hintStyle: TextStyle(color: secondaryText),
               prefixIcon: Icon(Icons.search, color: accentColor),
               filled: true,
@@ -727,7 +731,7 @@ class _SearchSelectionSheetState<T> extends State<_SearchSelectionSheet<T>> {
             child: filteredItems.isEmpty
                 ? Center(
                     child: Text(
-                      'No results found',
+                      S.of(context).manualLocationNoResults,
                       style: TextStyle(color: secondaryText),
                     ),
                   )

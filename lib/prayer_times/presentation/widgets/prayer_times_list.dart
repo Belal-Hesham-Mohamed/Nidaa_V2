@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
+import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
 
 class PrayerTimesList extends StatelessWidget {
@@ -12,24 +13,24 @@ class PrayerTimesList extends StatelessWidget {
     this.timings,
   });
 
-  List<Map<String, String>> _getPrayerItems() {
+  List<Map<String, String>> _getPrayerItems(S s) {
     if (timings != null) {
       return [
-        {'name': 'Fajr', 'time': timings!.fajr},
-        {'name': 'Sunrise', 'time': timings!.sunrise},
-        {'name': 'Dhuhr', 'time': timings!.dhuhr},
-        {'name': 'Asr', 'time': timings!.asr},
-        {'name': 'Maghrib', 'time': timings!.maghrib},
-        {'name': 'Isha', 'time': timings!.isha},
+        {'name': s.prayerFajr, 'time': timings!.fajr},
+        {'name': s.prayerSunrise, 'time': timings!.sunrise},
+        {'name': s.prayerDhuhr, 'time': timings!.dhuhr},
+        {'name': s.prayerAsr, 'time': timings!.asr},
+        {'name': s.prayerMaghrib, 'time': timings!.maghrib},
+        {'name': s.prayerIsha, 'time': timings!.isha},
       ];
     }
-    return const [
-      {'name': 'Fajr', 'time': '04:35 AM'},
-      {'name': 'Sunrise', 'time': '06:02 AM'},
-      {'name': 'Dhuhr', 'time': '12:58 PM'},
-      {'name': 'Asr', 'time': '04:27 PM'},
-      {'name': 'Maghrib', 'time': '07:54 PM'},
-      {'name': 'Isha', 'time': '09:21 PM'},
+    return [
+      {'name': s.prayerFajr, 'time': '04:35 AM'},
+      {'name': s.prayerSunrise, 'time': '06:02 AM'},
+      {'name': s.prayerDhuhr, 'time': '12:58 PM'},
+      {'name': s.prayerAsr, 'time': '04:27 PM'},
+      {'name': s.prayerMaghrib, 'time': '07:54 PM'},
+      {'name': s.prayerIsha, 'time': '09:21 PM'},
     ];
   }
 
@@ -53,7 +54,8 @@ class PrayerTimesList extends StatelessWidget {
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    final prayersList = _getPrayerItems();
+    final s = S.of(context);
+    final prayersList = _getPrayerItems(s);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

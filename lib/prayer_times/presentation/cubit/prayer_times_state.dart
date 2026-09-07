@@ -19,8 +19,17 @@ final class PrayerTimesSuccess extends PrayerTimesState {
   });
 }
 
-final class PrayerTimesFailure extends PrayerTimesState {
-  final String message;
+enum PrayerTimesErrorKey {
+  noSavedManualLocation,
+  manualLocationIncomplete,
+  currentLocationUnavailable,
+  noPrayerTimes,
+  unknown,
+}
 
-  PrayerTimesFailure(this.message);
+final class PrayerTimesFailure extends PrayerTimesState {
+  final PrayerTimesErrorKey errorKey;
+  final String? rawMessage;
+
+  PrayerTimesFailure(this.errorKey, {this.rawMessage});
 }

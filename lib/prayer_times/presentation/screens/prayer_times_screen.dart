@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
+import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
 import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_header.dart';
@@ -46,6 +47,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final backgroundColor = isDark
@@ -135,7 +137,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       Icons.access_time,
                       color: activeColor,
                     ),
-                    label: 'Prayer Times',
+                    label: s.navPrayerTimes,
                   ),
                   NavigationDestination(
                     icon: Icon(
@@ -146,7 +148,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       Icons.explore,
                       color: activeColor,
                     ),
-                    label: 'Qibla',
+                    label: s.navQibla,
                   ),
                   NavigationDestination(
                     icon: Icon(
@@ -157,7 +159,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       Icons.menu_book,
                       color: activeColor,
                     ),
-                    label: 'Azkar',
+                    label: s.navAzkar,
                   ),
                   NavigationDestination(
                     icon: Icon(
@@ -168,7 +170,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       Icons.settings,
                       color: activeColor,
                     ),
-                    label: 'Settings',
+                    label: s.navSettings,
                   ),
                 ],
               ),
@@ -206,6 +208,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               child: CircularProgressIndicator(),
             );
           } else if (state is PrayerTimesFailure) {
+            final s = S.of(context);
             final isDark = Theme.of(context).brightness == Brightness.dark;
             final primaryText = isDark
                 ? AppColors.darkPrimaryText
@@ -213,6 +216,25 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             final accentColor = isDark
                 ? AppColors.darkAccentGold
                 : AppColors.lightAccentBlue;
+
+            String localizedMessage;
+            switch (state.errorKey) {
+              case PrayerTimesErrorKey.noSavedManualLocation:
+                localizedMessage = s.errorNoSavedManualLocation;
+                break;
+              case PrayerTimesErrorKey.manualLocationIncomplete:
+                localizedMessage = s.errorManualLocationIncomplete;
+                break;
+              case PrayerTimesErrorKey.currentLocationUnavailable:
+                localizedMessage = s.errorCurrentLocationUnavailable;
+                break;
+              case PrayerTimesErrorKey.noPrayerTimes:
+                localizedMessage = s.errorNoPrayerTimes;
+                break;
+              case PrayerTimesErrorKey.unknown:
+                localizedMessage = state.rawMessage ?? s.errorNoPrayerTimes;
+                break;
+            }
 
             return Center(
               child: Padding(
@@ -227,7 +249,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      state.message,
+                      localizedMessage,
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 16,
@@ -240,7 +262,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         context.read<PrayerTimesCubit>().getPrayerTimes();
                       },
                       icon: const Icon(Icons.refresh),
-                      label: const Text('Retry'),
+                      label: Text(s.retry),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: accentColor,
                         foregroundColor: Colors.white,
@@ -256,6 +278,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             final isFallback = state.isFallbackLocation;
 
             final activePrayerName = _determineActivePrayer(prayerTimes.timings);
+            final s = S.of(context);
+            final localizedActivePrayer = _localizePrayerName(activePrayerName, s);
 
             return CustomScrollView(
               slivers: [
@@ -272,17 +296,24 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         PrayerTimesHeader(
-                          location: isFallback
-                              ? '$locationName (Saved)'
-                              : locationName,
+                          location: (() {
+                            if (locationName == 'Current Location') {
+                              return S.current.currentLocationFallback;
+                            }
+                            return isFallback
+                                ? '$locationName ${S.current.savedSuffix}'
+                                : locationName;
+                          })(),
                           hijriDate: prayerTimes.date.hijri,
                           gregorianDate: prayerTimes.date.gregorian,
+                          currentLocationFallbackLabel:
+                              S.current.currentLocationFallback,
                         ),
                         const SizedBox(height: 6),
                         SizedBox(
                           height: 220,
                           child: PrayerTimesHero(
-                            prayerName: activePrayerName,
+                            prayerName: localizedActivePrayer,
                             prayerTime: _getPrayerTimeByName(
                               prayerTimes.timings,
                               activePrayerName,
@@ -297,7 +328,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         const SizedBox(height: 4),
                         Expanded(
                           child: PrayerTimesList(
-                            activePrayer: activePrayerName,
+                            activePrayer: localizedActivePrayer,
                             timings: prayerTimes.timings,
                           ),
                         ),
@@ -333,6 +364,25 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       }
     }
     return 'Fajr';
+  }
+
+  String _localizePrayerName(String name, S s) {
+    switch (name) {
+      case 'Fajr':
+        return s.prayerFajr;
+      case 'Sunrise':
+        return s.prayerSunrise;
+      case 'Dhuhr':
+        return s.prayerDhuhr;
+      case 'Asr':
+        return s.prayerAsr;
+      case 'Maghrib':
+        return s.prayerMaghrib;
+      case 'Isha':
+        return s.prayerIsha;
+      default:
+        return s.prayerFajr;
+    }
   }
 
   String _getPrayerTimeByName(Timings timings, String name) {
@@ -385,6 +435,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Widget _buildPlaceholderContent() {
+    final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final primaryText = isDark
@@ -393,7 +444,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
     return Center(
       child: Text(
-        'Coming Soon',
+        s.comingSoon,
         style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,

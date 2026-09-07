@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 import 'package:dio/dio.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:nidaa_v2/core/network/network_info.dart';
+import 'package:nidaa_v2/core/settings/settings_local_datasource.dart';
 import 'package:nidaa_v2/location/current_location/data/datasource/location_datasorce.dart';
 import 'package:nidaa_v2/location/current_location/data/datasource/location_local_datasource.dart';
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
@@ -30,7 +31,9 @@ import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart
 
 final sl = GetIt.instance;
 
-void setupServiceLocator() {
+void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
+  sl.registerSingleton<SettingsLocalDataSource>(settingsLocalDataSource);
+
   sl.registerSingleton<Box<LocationModel>>(
     Hive.box<LocationModel>('locationBox'),
   );

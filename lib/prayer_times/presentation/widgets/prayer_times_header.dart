@@ -1,30 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
+import 'package:nidaa_v2/generated/l10n.dart';
 
 class PrayerTimesHeader extends StatelessWidget {
   final String location;
   final String hijriDate;
   final String gregorianDate;
+  final String currentLocationFallbackLabel;
 
   const PrayerTimesHeader({
     super.key,
     required this.location,
     required this.hijriDate,
     required this.gregorianDate,
+    required this.currentLocationFallbackLabel,
   });
 
-  String _getWeekday(DateTime date) {
-    const weekdays = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
+  String _getWeekday(BuildContext context, DateTime date) {
+    final s = S.of(context);
+    final labels = [
+      s.weekdayMonday,
+      s.weekdayTuesday,
+      s.weekdayWednesday,
+      s.weekdayThursday,
+      s.weekdayFriday,
+      s.weekdaySaturday,
+      s.weekdaySunday,
     ];
 
-    return weekdays[date.weekday - 1];
+    return labels[date.weekday - 1];
   }
 
   @override
@@ -48,7 +52,7 @@ class PrayerTimesHeader extends StatelessWidget {
         ? AppColors.darkAccentGold
         : AppColors.lightAccentBlue;
 
-    final weekday = _getWeekday(DateTime.now());
+    final weekday = _getWeekday(context, DateTime.now());
 
     return Container(
       width: double.infinity,
