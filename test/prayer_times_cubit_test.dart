@@ -81,7 +81,7 @@ class FakeGetPrayerTimesUsecase implements GetPrayerTimesUsecase {
       maghrib: '18:00',
       isha: '19:30',
     ),
-    date: Date(gregorian: '06-09-2026', hijri: '24 Safar 1448'),
+    date: Date(gregorian: '07-09-2026', hijri: '25 Safar 1448'),
     night: Night(midnight: '00:00', firstThird: '22:00', lastThird: '02:00'),
   );
 
@@ -139,7 +139,7 @@ class FakeGetPrayerTimesWithCacheUsecase implements GetPrayerTimesWithCacheUseca
       maghrib: '18:00',
       isha: '19:30',
     ),
-    date: Date(gregorian: '06-09-2026', hijri: '24 Safar 1448'),
+    date: Date(gregorian: '07-09-2026', hijri: '25 Safar 1448'),
     night: Night(midnight: '00:00', firstThird: '22:00', lastThird: '02:00'),
   );
 

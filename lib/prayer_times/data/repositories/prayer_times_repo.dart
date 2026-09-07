@@ -205,24 +205,44 @@ Future<List<PrayerTimesModel>> _getPrayerTimesWithCacheByCoordinates({
     cachedMonths,
   );
 
-  if (missingMonths.isEmpty) {
-    return cachedPrayerTimes;
+  List<PrayerTimesModel> mergedPrayerTimes = cachedPrayerTimes;
+
+  if (missingMonths.isNotEmpty) {
+    final newPrayerTimes = await _fetchMissingMonths(
+      missingMonths,
+      latitude: latitude,
+      longitude: longitude,
+    );
+
+    mergedPrayerTimes = _mergePrayerTimes(
+      cachedPrayerTimes,
+      newPrayerTimes,
+    );
+
+    await localDataSource.savePrayerTimes(
+      mergedPrayerTimes,
+    );
   }
 
-  final newPrayerTimes = await _fetchMissingMonths(
-    missingMonths,
-    latitude: latitude,
-    longitude: longitude,
+  final todayKey = DateFormat('dd-MM-yyyy').format(today);
+  final todayIndex = mergedPrayerTimes.indexWhere(
+    (pt) => pt.date.gregorian.trim() == todayKey,
   );
 
-  final mergedPrayerTimes = _mergePrayerTimes(
-    cachedPrayerTimes,
-    newPrayerTimes,
-  );
+  if (todayIndex == -1) {
+    final todayTimings = await remoteDataSource.getTimingsByCoordinates(
+      latitude: latitude,
+      longitude: longitude,
+      date: todayKey,
+    );
 
-  await localDataSource.savePrayerTimes(
-    mergedPrayerTimes,
-  );
+    mergedPrayerTimes = [
+      ...mergedPrayerTimes,
+      todayTimings,
+    ];
+
+    await localDataSource.savePrayerTimes(mergedPrayerTimes);
+  }
 
   return mergedPrayerTimes;
 }

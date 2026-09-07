@@ -169,22 +169,30 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
                     PrayerTimesErrorKey.unknown,
                     rawMessage: failure.message,
                   ));
-                } else {
-                  final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
-                  emit(
-                    PrayerTimesSuccess(
-                      prayerTimes: todayPrayerTimes,
-                      locationName: locationName,
-                      isFallbackLocation: true,
-                    ),
-                  );
+                  return;
                 }
+                final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
+                if (todayPrayerTimes == null) {
+                  emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+                  return;
+                }
+                emit(
+                  PrayerTimesSuccess(
+                    prayerTimes: todayPrayerTimes,
+                    locationName: locationName,
+                    isFallbackLocation: true,
+                  ),
+                );
               },
             );
           },
           (newPrayerTimesList) {
             // API SUCCESS -> Cache replaced with new location data
             final todayPrayerTimes = _findTodayPrayerTimes(newPrayerTimesList);
+            if (todayPrayerTimes == null) {
+              emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+              return;
+            }
             emit(
               PrayerTimesSuccess(
                 prayerTimes: todayPrayerTimes,
@@ -216,6 +224,10 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
               return;
             }
             final todayPrayerTimes = _findTodayPrayerTimes(prayerTimesList);
+            if (todayPrayerTimes == null) {
+              emit(PrayerTimesFailure(PrayerTimesErrorKey.noPrayerTimes));
+              return;
+            }
             emit(
               PrayerTimesSuccess(
                 prayerTimes: todayPrayerTimes,
@@ -275,7 +287,7 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
     return value.trim().toLowerCase();
   }
 
-  PrayerTimes _findTodayPrayerTimes(List<PrayerTimes> list) {
+  PrayerTimes? _findTodayPrayerTimes(List<PrayerTimes> list) {
     final now = DateTime.now();
     final dateHyphen = DateFormat('dd-MM-yyyy').format(now);
     final dateReadable1 = DateFormat('dd MMM yyyy').format(now);
@@ -303,6 +315,6 @@ class PrayerTimesCubit extends Cubit<PrayerTimesState> {
       }
     }
 
-    return list.first;
+    return null;
   }
 }
