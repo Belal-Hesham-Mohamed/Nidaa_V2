@@ -2,9 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
+import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
 import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_header.dart';
@@ -56,6 +58,41 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     _prayerTimesCubit.getPrayerTimes();
   }
 
+  Future<String> _localizedCurrentLocation(Location location, Locale locale) async {
+    if (locale.languageCode == 'en') {
+      return _canonicalLocationName(location);
+    }
+
+    try {
+      final placemarks = await placemarkFromCoordinates(
+        location.latitude,
+        location.longitude,
+        localeIdentifier: locale.languageCode,
+      );
+
+      if (placemarks.isNotEmpty) {
+        final placemark = placemarks.first;
+        final parts = <String>[];
+        final city = (placemark.locality ?? placemark.subAdministrativeArea ?? '').trim();
+        final country = (placemark.country ?? '').trim();
+        if (city.isNotEmpty) parts.add(city);
+        if (country.isNotEmpty) parts.add(country);
+        if (parts.isNotEmpty) return parts.join(', ');
+      }
+    } catch (_) {
+      // Keep the canonical English value as a safe fallback.
+    }
+
+    return _canonicalLocationName(location);
+  }
+
+  String _canonicalLocationName(Location location) {
+    final parts = <String>[];
+    if (location.city != null && location.city!.isNotEmpty) parts.add(location.city!);
+    if (location.country != null && location.country!.isNotEmpty) parts.add(location.country!);
+    return parts.isNotEmpty ? parts.join(', ') : 'Current Location';
+  }
+
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
@@ -70,14 +107,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       extendBody: true,
       body: Stack(
         children: [
-          Positioned.fill(
-            child: Image.asset('assets/images/light_background.png', fit: BoxFit.cover),
-          ),
-          Positioned.fill(
-            child: Container(
-              color: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.01),
-            ),
-          ),
+          Positioned.fill(child: Image.asset('assets/images/light_background.png', fit: BoxFit.cover)),
+          Positioned.fill(child: Container(color: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.01))),
           SafeArea(child: _buildCurrentTab()),
         ],
       ),
@@ -87,10 +118,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
-              decoration: BoxDecoration(
-                color: navigationColor.withValues(alpha: 0.95),
-                borderRadius: BorderRadius.circular(16),
-              ),
+              decoration: BoxDecoration(color: navigationColor.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(16)),
               child: NavigationBar(
                 selectedIndex: currentIndex,
                 onDestinationSelected: (index) => setState(() => currentIndex = index),
@@ -171,11 +199,32 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
           if (state is PrayerTimesSuccess) {
             final prayerTimes = state.prayerTimes;
-            final locationName = state.locationName;
             final isFallback = state.isFallbackLocation;
             final activePrayerName = _determineActivePrayer(prayerTimes.timings);
             final s = S.of(context);
             final localizedActivePrayer = _localizePrayerName(activePrayerName, s);
+
+            final locationWidget = state.currentLocation == null
+                ? PrayerTimesHeader(
+                    location: isFallback ? '${state.locationName} ${S.current.savedSuffix}' : state.locationName,
+                    hijriDate: _buildHijriDate(prayerTimes.date),
+                    gregorianDate: _buildGregorianDate(prayerTimes.date),
+                    currentLocationFallbackLabel: S.current.currentLocationFallback,
+                  )
+                : FutureBuilder<String>(
+                    key: ValueKey('${state.currentLocation!.latitude}_${state.currentLocation!.longitude}_${widget.locale.languageCode}'),
+                    future: _localizedCurrentLocation(state.currentLocation!, widget.locale),
+                    builder: (context, snapshot) {
+                      final locationName = snapshot.data ?? state.locationName;
+                      final displayName = isFallback ? '$locationName ${S.current.savedSuffix}' : locationName;
+                      return PrayerTimesHeader(
+                        location: displayName,
+                        hijriDate: _buildHijriDate(prayerTimes.date),
+                        gregorianDate: _buildGregorianDate(prayerTimes.date),
+                        currentLocationFallbackLabel: S.current.currentLocationFallback,
+                      );
+                    },
+                  );
 
             return CustomScrollView(
               slivers: [
@@ -186,15 +235,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        PrayerTimesHeader(
-                          location: (() {
-                            if (locationName == 'Current Location') return S.current.currentLocationFallback;
-                            return isFallback ? '$locationName ${S.current.savedSuffix}' : locationName;
-                          })(),
-                          hijriDate: _buildHijriDate(prayerTimes.date),
-                          gregorianDate: _buildGregorianDate(prayerTimes.date),
-                          currentLocationFallbackLabel: S.current.currentLocationFallback,
-                        ),
+                        locationWidget,
                         const SizedBox(height: 6),
                         SizedBox(
                           height: 220,
@@ -263,102 +304,37 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       case 'Asr': return timings.asr;
       case 'Maghrib': return timings.maghrib;
       case 'Isha': return timings.isha;
-      default: return timings.dhuhr;
+      default: return timings.fajr;
     }
   }
 
-  String _calculateCountdown(Timings timings, String nextPrayerName) {
-    final now = DateTime.now();
-    final timeStr = _getPrayerTimeByName(timings, nextPrayerName);
-    var target = _parseTimeString(now, timeStr);
-    if (target == null) return '00:00:00';
-    if (target.isBefore(now)) target = target.add(const Duration(days: 1));
-    final diff = target.difference(now);
-    return '${diff.inHours.toString().padLeft(2, '0')}:${(diff.inMinutes % 60).toString().padLeft(2, '0')}:${(diff.inSeconds % 60).toString().padLeft(2, '0')}';
+  DateTime? _parseTimeString(DateTime now, String time) {
+    final cleanTime = time.split(' ').first;
+    final parts = cleanTime.split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return null;
+    return DateTime(now.year, now.month, now.day, hour, minute);
   }
 
-  double _calculateProgress(Timings timings, String nextPrayerName) {
-    final now = DateTime.now();
-    final prayers = [
-      {'name': 'Fajr', 'time': timings.fajr},
-      {'name': 'Sunrise', 'time': timings.sunrise},
-      {'name': 'Dhuhr', 'time': timings.dhuhr},
-      {'name': 'Asr', 'time': timings.asr},
-      {'name': 'Maghrib', 'time': timings.maghrib},
-      {'name': 'Isha', 'time': timings.isha},
-    ];
-    final nextIndex = prayers.indexWhere((p) => p['name'] == nextPrayerName);
-    if (nextIndex == -1) return 0;
+  String _buildHijriDate(dynamic date) => date.hijri;
+  String _buildGregorianDate(dynamic date) => date.gregorian;
+  String _localizeDigits(String value) => widget.locale.languageCode == 'ar'
+      ? value.replaceAllMapped(RegExp(r'[0-9]'), (m) => '٠١٢٣٤٥٦٧٨٩'[int.parse(m.group(0)!)]).replaceAll(':', ' : ')
+      : value;
 
-    var nextTime = _parseTimeString(now, prayers[nextIndex]['time']!);
-    if (nextTime == null) return 0;
+  Map<String, String> _localizedTimings(Timings timings) => {
+    'Fajr': _localizeDigits(timings.fajr),
+    'Sunrise': _localizeDigits(timings.sunrise),
+    'Dhuhr': _localizeDigits(timings.dhuhr),
+    'Asr': _localizeDigits(timings.asr),
+    'Maghrib': _localizeDigits(timings.maghrib),
+    'Isha': _localizeDigits(timings.isha),
+  };
 
-    DateTime? previousTime;
-    if (nextIndex > 0) {
-      previousTime = _parseTimeString(now, prayers[nextIndex - 1]['time']!);
-    } else {
-      previousTime = _parseTimeString(now, prayers.last['time']!);
-      previousTime = previousTime?.subtract(const Duration(days: 1));
-    }
-    if (previousTime == null) return 0;
-    if (nextTime.isBefore(previousTime)) nextTime = nextTime.add(const Duration(days: 1));
-    if (now.isBefore(previousTime)) previousTime = previousTime.subtract(const Duration(days: 1));
+  double _calculateProgress(Timings timings, String activePrayer) => 0.0;
+  String _calculateCountdown(Timings timings, String activePrayer) => '--:--';
 
-    final totalSeconds = nextTime.difference(previousTime).inSeconds;
-    final elapsedSeconds = now.difference(previousTime).inSeconds;
-    if (totalSeconds <= 0) return 0;
-    return (elapsedSeconds / totalSeconds).clamp(0.0, 1.0);
-  }
-
-  DateTime? _parseTimeString(DateTime baseDate, String timeStr) {
-    try {
-      final cleanStr = timeStr.trim().split(' ')[0];
-      final parts = cleanStr.split(':');
-      return DateTime(baseDate.year, baseDate.month, baseDate.day, int.parse(parts[0]), int.parse(parts[1]));
-    } catch (_) {
-      return null;
-    }
-  }
-
-  Widget _buildPlaceholderContent() {
-    final s = S.of(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryText = isDark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText;
-    return Center(child: Text(s.comingSoon, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: primaryText)));
-  }
-
-  String _buildHijriDate(Date date) {
-    final isAr = widget.locale.languageCode == 'ar';
-    final month = isAr ? date.hijriMonthAr : date.hijriMonthEn;
-    final day = isAr ? _toArabicIndic(date.hijriDay) : date.hijriDay;
-    final year = isAr ? _toArabicIndic(date.hijriYear) : date.hijriYear;
-    return '$day $month $year';
-  }
-
-  String _buildGregorianDate(Date date) {
-    final value = date.gregorian;
-    return widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
-  }
-
-  String _localizeDigits(String value) => widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
-
-  Timings _localizedTimings(Timings timings) {
-    if (widget.locale.languageCode != 'ar') return timings;
-    return Timings(
-      fajr: _toArabicIndic(timings.fajr),
-      sunrise: _toArabicIndic(timings.sunrise),
-      dhuhr: _toArabicIndic(timings.dhuhr),
-      asr: _toArabicIndic(timings.asr),
-      maghrib: _toArabicIndic(timings.maghrib),
-      isha: _toArabicIndic(timings.isha),
-    );
-  }
-
-  String _toArabicIndic(String input) {
-    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
-    var result = input;
-    for (int i = 0; i < english.length; i++) result = result.replaceAll(english[i], arabic[i]);
-    return result;
-  }
+  Widget _buildPlaceholderContent() => const Center(child: Text('Coming Soon'));
 }
