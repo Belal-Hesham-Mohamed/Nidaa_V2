@@ -399,7 +399,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                 ),
                               )
                             : Text(
-                                S.of(context).manualLocationSave,
+                                S.of(context).manualLocationSaveButton,
                                 style: const TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.w600,
