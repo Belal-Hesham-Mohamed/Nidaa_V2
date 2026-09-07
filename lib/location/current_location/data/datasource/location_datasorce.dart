@@ -9,7 +9,7 @@ import 'package:nidaa_v2/location/current_location/data/models/location_model.da
 import 'package:geolocator/geolocator.dart' as geo;
 
 class LocationDatasource {
-  Future<LocationModel> getLocationData() async {
+  Future<LocationModel> getLocationData({Locale? locale}) async {
     final serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {

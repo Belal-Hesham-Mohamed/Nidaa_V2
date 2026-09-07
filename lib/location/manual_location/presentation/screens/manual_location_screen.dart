@@ -1,5 +1,6 @@
 import 'package:country_state_city/country_state_city.dart' as location_data;
 import 'package:csc_picker_plus/csc_picker_plus.dart';
+import 'package:csc_picker_plus/model/select_status_model.dart';
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
