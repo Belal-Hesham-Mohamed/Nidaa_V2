@@ -10,11 +10,13 @@ final class PrayerTimesLoading extends PrayerTimesState {}
 final class PrayerTimesSuccess extends PrayerTimesState {
   final PrayerTimes prayerTimes;
   final String locationName;
+  final Location? currentLocation;
   final bool isFallbackLocation;
 
   PrayerTimesSuccess({
     required this.prayerTimes,
     required this.locationName,
+    this.currentLocation,
     this.isFallbackLocation = false,
   });
 }
