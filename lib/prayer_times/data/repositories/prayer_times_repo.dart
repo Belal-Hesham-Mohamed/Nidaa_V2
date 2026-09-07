@@ -122,28 +122,6 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     return uniquePrayerTimes.values.toList();
   }
 
-  Future<List<PrayerTimesModel>> _fetchMissingMonthsByCity(
-    Set<String> missingMonths, {
-    required String city,
-    required String state,
-    required String country,
-  }) async {
-    final allPrayerTimes = <PrayerTimesModel>[];
-
-    for (final monthKey in missingMonths) {
-      final monthData = _parseMonthKey(monthKey);
-      final prayerTimes = await remoteDataSource.getCalendarByCity(
-        city: city,
-        state: state,
-        country: country,
-        month: monthData['month']!,
-        year: monthData['year']!,
-      );
-      allPrayerTimes.addAll(prayerTimes);
-    }
-
-    return allPrayerTimes;
-  }
 
   Map<String, int> _parseMonthKey(String monthKey) {
     final parts = monthKey.split('-');

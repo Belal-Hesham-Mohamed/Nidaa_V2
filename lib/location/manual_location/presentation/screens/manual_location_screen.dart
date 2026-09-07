@@ -576,7 +576,7 @@ class _ManualLocationScreenState extends State<ManualLocationScreen> {
                                   color: Colors.white,
                                 ),
                               )
-                            : Text(S.of(context).save),
+                            : Text(S.of(context).savedSuffix),
                       ),
                     ),
                   ],
