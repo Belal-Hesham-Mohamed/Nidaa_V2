@@ -1,10 +1,11 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/error/failuer.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location_mode.dart';
 
 abstract class LocationRepoBase {
-  Future<Either<Failure, Location>> getLocation();
+  Future<Either<Failure, Location>> getLocation({Locale? locale});
 
   Future<Either<Failure, Location>> getSavedLocation();
 
