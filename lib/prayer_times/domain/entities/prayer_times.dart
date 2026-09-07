@@ -26,9 +26,18 @@ class Timings {
 
 class Date {
   final String gregorian;
-  final String hijri;
+  final String hijriDay;
+  final String hijriMonthEn;
+  final String hijriMonthAr;
+  final String hijriYear;
 
-  Date({required this.gregorian, required this.hijri});
+  Date({
+    required this.gregorian,
+    required this.hijriDay,
+    required this.hijriMonthEn,
+    required this.hijriMonthAr,
+    required this.hijriYear,
+  });
 }
 
 class Night {

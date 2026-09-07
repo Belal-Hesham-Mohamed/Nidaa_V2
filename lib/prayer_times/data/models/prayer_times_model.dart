@@ -71,22 +71,47 @@ class TimingsModel {
 
 @HiveType(typeId: 4)
 class DateModel {
-  DateModel({required this.gregorian, required this.hijri});
+  DateModel({
+    required this.gregorian,
+    this.hijri,
+    this.hijriDate,
+    this.hijriMonthEn,
+    this.hijriMonthAr,
+    this.hijriYear,
+  });
 
   @HiveField(0)
   final String gregorian;
 
   @HiveField(1)
-  final String hijri;
+  final String? hijri;
+
+  @HiveField(2)
+  final String? hijriDate;
+
+  @HiveField(3)
+  final String? hijriMonthEn;
+
+  @HiveField(4)
+  final String? hijriMonthAr;
+
+  @HiveField(5)
+  final String? hijriYear;
 
   factory DateModel.fromJson(Map<String, dynamic> json) {
-    final hijri = json['hijri'] as Map<String, dynamic>;
-    final hijriMonth = hijri['month'] as Map<String, dynamic>;
-    final gregorian = json['gregorian'] as Map<String, dynamic>;
+    final hijri = json['hijri'] as Map<String, dynamic>?;
+    final hijriMonth = hijri?['month'] as Map<String, dynamic>?;
+    final gregorian = json['gregorian'] as Map<String, dynamic>?;
 
     return DateModel(
-      gregorian: gregorian['date'] as String,
-      hijri: '${hijri['date']} ${hijriMonth['en']} ${hijri['year']}',
+      gregorian: gregorian?['date'] as String? ?? '',
+      hijri: hijri != null
+          ? '${hijri['date']} ${hijriMonth?['en']} ${hijri['year']}'
+          : null,
+      hijriDate: hijri?['date'] as String?,
+      hijriMonthEn: hijriMonth?['en'] as String?,
+      hijriMonthAr: hijriMonth?['ar'] as String?,
+      hijriYear: hijri?['year'] as String?,
     );
   }
 }

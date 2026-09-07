@@ -295,7 +295,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        PrayerTimesHeader(
+                         PrayerTimesHeader(
                           location: (() {
                             if (locationName == 'Current Location') {
                               return S.current.currentLocationFallback;
@@ -304,8 +304,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                                 ? '$locationName ${S.current.savedSuffix}'
                                 : locationName;
                           })(),
-                          hijriDate: prayerTimes.date.hijri,
-                          gregorianDate: prayerTimes.date.gregorian,
+                          hijriDate: _buildHijriDate(prayerTimes.date),
+                          gregorianDate: _buildGregorianDate(prayerTimes.date),
                           currentLocationFallbackLabel:
                               S.current.currentLocationFallback,
                         ),
@@ -314,13 +314,17 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                           height: 220,
                           child: PrayerTimesHero(
                             prayerName: localizedActivePrayer,
-                            prayerTime: _getPrayerTimeByName(
-                              prayerTimes.timings,
-                              activePrayerName,
+                            prayerTime: _localizeDigits(
+                              _getPrayerTimeByName(
+                                prayerTimes.timings,
+                                activePrayerName,
+                              ),
                             ),
-                            countdown: _calculateCountdown(
-                              prayerTimes.timings,
-                              activePrayerName,
+                            countdown: _localizeDigits(
+                              _calculateCountdown(
+                                prayerTimes.timings,
+                                activePrayerName,
+                              ),
                             ),
                             progress: 0.65,
                           ),
@@ -329,7 +333,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         Expanded(
                           child: PrayerTimesList(
                             activePrayer: localizedActivePrayer,
-                            timings: prayerTimes.timings,
+                            timings: _localizedTimings(prayerTimes.timings),
                           ),
                         ),
                       ],
@@ -452,5 +456,52 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         ),
       ),
     );
+  }
+
+  String _buildHijriDate(Date date) {
+    final isAr = widget.locale.languageCode == 'ar';
+    final month = isAr ? date.hijriMonthAr : date.hijriMonthEn;
+    final day = isAr ? _toArabicIndic(date.hijriDay) : date.hijriDay;
+    final year = isAr ? _toArabicIndic(date.hijriYear) : date.hijriYear;
+    return '$day $month $year';
+  }
+
+  String _buildGregorianDate(Date date) {
+    final value = date.gregorian;
+    if (widget.locale.languageCode == 'ar') {
+      return _toArabicIndic(value);
+    }
+    return value;
+  }
+
+  String _localizeDigits(String value) {
+    if (widget.locale.languageCode == 'ar') {
+      return _toArabicIndic(value);
+    }
+    return value;
+  }
+
+  Timings _localizedTimings(Timings timings) {
+    if (widget.locale.languageCode == 'ar') {
+      return Timings(
+        fajr: _toArabicIndic(timings.fajr),
+        sunrise: _toArabicIndic(timings.sunrise),
+        dhuhr: _toArabicIndic(timings.dhuhr),
+        asr: _toArabicIndic(timings.asr),
+        maghrib: _toArabicIndic(timings.maghrib),
+        isha: _toArabicIndic(timings.isha),
+      );
+    }
+    return timings;
+  }
+
+  String _toArabicIndic(String input) {
+    const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+    const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
+    var result = input;
+    for (int i = 0; i < english.length; i++) {
+      result = result.replaceAll(english[i], arabic[i]);
+    }
+    return result;
   }
 }

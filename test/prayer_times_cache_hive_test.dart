@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_local_datasource.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_remote_datasource.dart';
 import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
@@ -80,7 +81,14 @@ PrayerTimesModel _model(String gregorian) {
       maghrib: '18:00',
       isha: '19:30',
     ),
-    date: DateModel(gregorian: gregorian, hijri: 'x'),
+    date: DateModel(
+      gregorian: gregorian,
+      hijri: 'x',
+      hijriDate: '09-03-1448',
+      hijriMonthEn: 'Rabi al-Awwal',
+      hijriMonthAr: 'ربيع الأول',
+      hijriYear: '1448',
+    ),
     night: NightModel(
       midnight: '00:00',
       firstThird: '22:00',
@@ -95,6 +103,7 @@ void main() {
   setUp(() async {
     tempDir = Directory.systemTemp.createTempSync('nidaa_prayer_cache');
     Hive.init(tempDir.path);
+    Intl.defaultLocale = 'en';
     if (!Hive.isAdapterRegistered(2)) {
       Hive.registerAdapter(PrayerTimesModelAdapter());
     }
@@ -129,6 +138,8 @@ void main() {
 
     expect(date.gregorian, '01-09-2026');
   });
+
+  test('Hive save and restore preserves gregorian dates', () async {
     final boxName = 'prayerTimesBox';
     final saved = [_model('01-09-2026'), _model('31-08-2026')];
 
@@ -153,7 +164,7 @@ void main() {
   test('Current Location cache flow reads Hive after restart and detects months from gregorian.date', () async {
     final boxName = 'prayerTimesBox';
     final today = DateTime(2026, 9, 7);
-    final saved = [_model('31-08-2026'), _model('01-09-2026')];
+    final saved = [_model('31-08-2026'), _model('01-09-2026'), _model('07-09-2026')];
 
     final writeBox = await Hive.openBox(boxName);
     await PrayerTimesLocalDataSourceImpl(writeBox).savePrayerTimes(saved);
@@ -175,13 +186,13 @@ void main() {
     expect(remote.calendarByCoordinatesCalls, 0);
     expect(result.isRight(), isTrue);
     final prayerTimes = result.getOrElse(() => []);
-    expect(prayerTimes, hasLength(2));
+    expect(prayerTimes, hasLength(3));
   });
 
   test('Cached months parsing accepts stored Aladhan readable dates after Hive reopen', () async {
     final boxName = 'prayerTimesBox';
     final today = DateTime(2026, 9, 7);
-    final saved = [_model('01 Aug 2026'), _model('01 Sep 2026')];
+    final saved = [_model('01 Aug 2026'), _model('01 Sep 2026'), _model('07-09-2026')];
 
     final writeBox = await Hive.openBox(boxName);
     await PrayerTimesLocalDataSourceImpl(writeBox).savePrayerTimes(saved);
@@ -202,5 +213,7 @@ void main() {
 
     expect(remote.calendarByCoordinatesCalls, 0);
     expect(result.isRight(), isTrue);
+    final prayerTimes = result.getOrElse(() => []);
+    expect(prayerTimes, hasLength(3));
   });
 }

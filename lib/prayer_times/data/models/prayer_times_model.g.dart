@@ -58,9 +58,9 @@ class TimingsModelAdapter extends TypeAdapter<TimingsModel> {
     };
     return TimingsModel(
       fajr: fields[0] as String,
-      dhuhr: fields[1] as String,
-      asr: fields[2] as String,
-      sunrise: fields[3] as String,
+      sunrise: fields[1] as String,
+      dhuhr: fields[2] as String,
+      asr: fields[3] as String,
       maghrib: fields[4] as String,
       isha: fields[5] as String,
     );
@@ -73,11 +73,11 @@ class TimingsModelAdapter extends TypeAdapter<TimingsModel> {
       ..writeByte(0)
       ..write(obj.fajr)
       ..writeByte(1)
-      ..write(obj.dhuhr)
-      ..writeByte(2)
-      ..write(obj.asr)
-      ..writeByte(3)
       ..write(obj.sunrise)
+      ..writeByte(2)
+      ..write(obj.dhuhr)
+      ..writeByte(3)
+      ..write(obj.asr)
       ..writeByte(4)
       ..write(obj.maghrib)
       ..writeByte(5)
@@ -107,18 +107,30 @@ class DateModelAdapter extends TypeAdapter<DateModel> {
     };
     return DateModel(
       gregorian: fields[0] as String,
-      hijri: fields[1] as String,
+      hijri: fields[1] as String?,
+      hijriDate: fields[2] as String?,
+      hijriMonthEn: fields[3] as String?,
+      hijriMonthAr: fields[4] as String?,
+      hijriYear: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, DateModel obj) {
     writer
-      ..writeByte(2)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.gregorian)
       ..writeByte(1)
-      ..write(obj.hijri);
+      ..write(obj.hijri)
+      ..writeByte(2)
+      ..write(obj.hijriDate)
+      ..writeByte(3)
+      ..write(obj.hijriMonthEn)
+      ..writeByte(4)
+      ..write(obj.hijriMonthAr)
+      ..writeByte(5)
+      ..write(obj.hijriYear);
   }
 
   @override

@@ -50,6 +50,17 @@ DateTime _parseGregorianDate(String value) {
     }
   }
 
+  final readableMatch = RegExp(r'^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$').firstMatch(value);
+  if (readableMatch != null) {
+    final day = int.parse(readableMatch.group(1)!);
+    final monthStr = readableMatch.group(2)!.toLowerCase();
+    final year = int.parse(readableMatch.group(3)!);
+    final month = _monthFromAbbrev(monthStr);
+    if (month != null) {
+      return DateTime(year, month, day);
+    }
+  }
+
   for (final pattern in ['dd MMM yyyy', 'd MMM yyyy']) {
     try {
       return DateFormat(pattern, 'en').parseStrict(value);
@@ -57,6 +68,24 @@ DateTime _parseGregorianDate(String value) {
   }
 
   throw FormatException('Invalid gregorian date: $value');
+}
+
+int? _monthFromAbbrev(String abbrev) {
+  const months = {
+    'jan': 1,
+    'feb': 2,
+    'mar': 3,
+    'apr': 4,
+    'may': 5,
+    'jun': 6,
+    'jul': 7,
+    'aug': 8,
+    'sep': 9,
+    'oct': 10,
+    'nov': 11,
+    'dec': 12,
+  };
+  return months[abbrev];
 }
 Set<String> _getMissingMonths(
   Set<String> requiredMonths,
@@ -139,28 +168,29 @@ Future<List<PrayerTimesModel>> _fetchMissingMonthsByCity(
 
   return allPrayerTimes;
 }
+
 @override
 Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates({
   required DateTime today,
   required double latitude,
   required double longitude,
 }) async {
-  try {
-    final prayerTimes = await _getPrayerTimesWithCacheByCoordinates(
-      today: today,
-      latitude: latitude,
-      longitude: longitude,
-    );
+    try {
+      final prayerTimes = await _getPrayerTimesWithCacheByCoordinates(
+        today: today,
+        latitude: latitude,
+        longitude: longitude,
+      );
 
-    return Right(
-      prayerTimes.map(_toEntity).toList(),
-    );
-  } catch (_) {
-    return Left(
-      Failure('Something went wrong while getting prayer times'),
-    );
+      return Right(
+        prayerTimes.map(_toEntity).toList(),
+      );
+    } catch (_) {
+      return Left(
+        Failure('Something went wrong while getting prayer times'),
+      );
+    }
   }
-}
 
 @override
 Future<Either<Failure, List<PrayerTimes>>> replaceCacheByCoordinates({
@@ -224,7 +254,8 @@ Future<List<PrayerTimesModel>> _getPrayerTimesWithCacheByCoordinates({
     );
   }
 
-  final todayKey = DateFormat('dd-MM-yyyy').format(today);
+  final todayKey =
+      '${today.day.toString().padLeft(2, '0')}-${today.month.toString().padLeft(2, '0')}-${today.year}';
   final todayIndex = mergedPrayerTimes.indexWhere(
     (pt) => pt.date.gregorian.trim() == todayKey,
   );
@@ -408,6 +439,15 @@ Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
   PrayerTimes _toEntity(
     PrayerTimesModel model,
   ) {
+    final hijriDay = model.date.hijriDate ??
+        _oldHijriParts(model.date.hijri).day;
+    final hijriMonthEn = model.date.hijriMonthEn ??
+        _oldHijriParts(model.date.hijri).month;
+    final hijriMonthAr = model.date.hijriMonthAr ??
+        _oldHijriParts(model.date.hijri).month;
+    final hijriYear = model.date.hijriYear ??
+        _oldHijriParts(model.date.hijri).year;
+
     return PrayerTimes(
       timings: Timings(
         fajr: model.timings.fajr,
@@ -419,7 +459,10 @@ Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
       ),
       date: Date(
         gregorian: model.date.gregorian,
-        hijri: model.date.hijri,
+        hijriDay: hijriDay,
+        hijriMonthEn: hijriMonthEn,
+        hijriMonthAr: hijriMonthAr,
+        hijriYear: hijriYear,
       ),
       night: Night(
         midnight: model.night.midnight,
@@ -427,6 +470,20 @@ Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
         lastThird: model.night.lastThird,
       ),
     );
+  }
+
+  ({String day, String month, String year}) _oldHijriParts(String? oldHijri) {
+    if (oldHijri == null || oldHijri.isEmpty) {
+      return (day: '', month: '', year: '');
+    }
+    final parts = oldHijri.split(' ');
+    if (parts.length < 3) {
+      return (day: '', month: '', year: '');
+    }
+    final day = parts.first;
+    final year = parts.last;
+    final month = parts.sublist(1, parts.length - 1).join(' ');
+    return (day: day, month: month, year: year);
   }
 
   Future<PrayerTimesModel> _getTimingsByManualLocation({
