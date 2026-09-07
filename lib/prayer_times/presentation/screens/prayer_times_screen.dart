@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
@@ -31,147 +33,77 @@ class PrayerTimesScreen extends StatefulWidget {
 class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   int currentIndex = 0;
   late final PrayerTimesCubit _prayerTimesCubit;
+  Timer? _timer;
 
   @override
   void initState() {
     super.initState();
     _prayerTimesCubit = sl<PrayerTimesCubit>();
     _prayerTimesCubit.getPrayerTimes();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted && currentIndex == 0) setState(() {});
+    });
   }
 
   @override
   void dispose() {
+    _timer?.cancel();
     _prayerTimesCubit.close();
     super.dispose();
+  }
+
+  void _refreshPrayerTimesAfterLocationChange() {
+    _prayerTimesCubit.getPrayerTimes();
   }
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final backgroundColor = isDark
-        ? AppColors.darkBackground
-        : AppColors.lightBackground;
-
-    final navigationColor = isDark
-        ? AppColors.darkSurface
-        : AppColors.lightSurface;
-
-    final inactiveColor = isDark
-        ? AppColors.darkSecondaryText
-        : AppColors.lightSecondaryText;
-
-    final activeColor = isDark
-        ? AppColors.darkAccentGold
-        : AppColors.lightAccentBlue;
+    final backgroundColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
+    final navigationColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final inactiveColor = isDark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText;
+    final activeColor = isDark ? AppColors.darkAccentGold : AppColors.lightAccentBlue;
 
     return Scaffold(
       backgroundColor: backgroundColor,
       extendBody: true,
       body: Stack(
         children: [
-          // Background
           Positioned.fill(
-            child: Image.asset(
-              'assets/images/light_background.png',
-              fit: BoxFit.cover,
-            ),
+            child: Image.asset('assets/images/light_background.png', fit: BoxFit.cover),
           ),
-
-          // Dark/Light overlay
           Positioned.fill(
             child: Container(
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.45)
-                  : Colors.white.withValues(alpha: 0.01),
+              color: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.01),
             ),
           ),
-
-          // Main content
-          SafeArea(
-            child: _buildCurrentTab(),
-          ),
+          SafeArea(child: _buildCurrentTab()),
         ],
       ),
-
-      // Floating Bottom Navigation
       bottomNavigationBar: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(
-            16,
-            8,
-            16,
-            10,
-          ),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(16),
             child: Container(
               decoration: BoxDecoration(
-                color: navigationColor.withValues(
-                  alpha: 0.95,
-                ),
+                color: navigationColor.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: NavigationBar(
                 selectedIndex: currentIndex,
-                onDestinationSelected: (index) {
-                  setState(() {
-                    currentIndex = index;
-                  });
-                },
+                onDestinationSelected: (index) => setState(() => currentIndex = index),
                 backgroundColor: Colors.transparent,
                 elevation: 0,
                 shadowColor: Colors.transparent,
                 surfaceTintColor: Colors.transparent,
-                indicatorColor: activeColor.withValues(
-                  alpha: 0.12,
-                ),
+                indicatorColor: activeColor.withValues(alpha: 0.12),
                 destinations: [
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.access_time,
-                      color: inactiveColor,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.access_time,
-                      color: activeColor,
-                    ),
-                    label: s.navPrayerTimes,
-                  ),
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.explore_outlined,
-                      color: inactiveColor,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.explore,
-                      color: activeColor,
-                    ),
-                    label: s.navQibla,
-                  ),
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.menu_book_outlined,
-                      color: inactiveColor,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.menu_book,
-                      color: activeColor,
-                    ),
-                    label: s.navAzkar,
-                  ),
-                  NavigationDestination(
-                    icon: Icon(
-                      Icons.settings_outlined,
-                      color: inactiveColor,
-                    ),
-                    selectedIcon: Icon(
-                      Icons.settings,
-                      color: activeColor,
-                    ),
-                    label: s.navSettings,
-                  ),
+                  NavigationDestination(icon: Icon(Icons.access_time, color: inactiveColor), selectedIcon: Icon(Icons.access_time, color: activeColor), label: s.navPrayerTimes),
+                  NavigationDestination(icon: Icon(Icons.explore_outlined, color: inactiveColor), selectedIcon: Icon(Icons.explore, color: activeColor), label: s.navQibla),
+                  NavigationDestination(icon: Icon(Icons.menu_book_outlined, color: inactiveColor), selectedIcon: Icon(Icons.menu_book, color: activeColor), label: s.navAzkar),
+                  NavigationDestination(icon: Icon(Icons.settings_outlined, color: inactiveColor), selectedIcon: Icon(Icons.settings, color: activeColor), label: s.navSettings),
                 ],
               ),
             ),
@@ -182,19 +114,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 
   Widget _buildCurrentTab() {
-    if (currentIndex == 0) {
-      return _buildPrayerTimesContent();
-    }
-
+    if (currentIndex == 0) return _buildPrayerTimesContent();
     if (currentIndex == 3) {
       return SettingsScreen(
         themeMode: widget.themeMode,
         onThemeModeChanged: widget.onThemeModeChanged,
         locale: widget.locale,
         onLocaleChanged: widget.onLocaleChanged,
+        onLocationChanged: _refreshPrayerTimesAfterLocationChange,
       );
     }
-
     return _buildPlaceholderContent();
   }
 
@@ -203,80 +132,47 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       value: _prayerTimesCubit,
       child: BlocBuilder<PrayerTimesCubit, PrayerTimesState>(
         builder: (context, state) {
-          if (state is PrayerTimesLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          } else if (state is PrayerTimesFailure) {
+          if (state is PrayerTimesLoading) return const Center(child: CircularProgressIndicator());
+
+          if (state is PrayerTimesFailure) {
             final s = S.of(context);
             final isDark = Theme.of(context).brightness == Brightness.dark;
-            final primaryText = isDark
-                ? AppColors.darkPrimaryText
-                : AppColors.lightPrimaryText;
-            final accentColor = isDark
-                ? AppColors.darkAccentGold
-                : AppColors.lightAccentBlue;
-
+            final primaryText = isDark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText;
+            final accentColor = isDark ? AppColors.darkAccentGold : AppColors.lightAccentBlue;
             String localizedMessage;
             switch (state.errorKey) {
-              case PrayerTimesErrorKey.noSavedManualLocation:
-                localizedMessage = s.errorNoSavedManualLocation;
-                break;
-              case PrayerTimesErrorKey.manualLocationIncomplete:
-                localizedMessage = s.errorManualLocationIncomplete;
-                break;
-              case PrayerTimesErrorKey.currentLocationUnavailable:
-                localizedMessage = s.errorCurrentLocationUnavailable;
-                break;
-              case PrayerTimesErrorKey.noPrayerTimes:
-                localizedMessage = s.errorNoPrayerTimes;
-                break;
-              case PrayerTimesErrorKey.unknown:
-                localizedMessage = state.rawMessage ?? s.errorNoPrayerTimes;
-                break;
+              case PrayerTimesErrorKey.noSavedManualLocation: localizedMessage = s.errorNoSavedManualLocation; break;
+              case PrayerTimesErrorKey.manualLocationIncomplete: localizedMessage = s.errorManualLocationIncomplete; break;
+              case PrayerTimesErrorKey.currentLocationUnavailable: localizedMessage = s.errorCurrentLocationUnavailable; break;
+              case PrayerTimesErrorKey.noPrayerTimes: localizedMessage = s.errorNoPrayerTimes; break;
+              case PrayerTimesErrorKey.unknown: localizedMessage = state.rawMessage ?? s.errorNoPrayerTimes; break;
             }
-
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24.0),
+                padding: const EdgeInsets.all(24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      size: 48,
-                      color: Colors.redAccent,
-                    ),
+                    const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
                     const SizedBox(height: 12),
-                    Text(
-                      localizedMessage,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: primaryText,
-                      ),
-                    ),
+                    Text(localizedMessage, textAlign: TextAlign.center, style: TextStyle(fontSize: 16, color: primaryText)),
                     const SizedBox(height: 16),
                     ElevatedButton.icon(
-                      onPressed: () {
-                        context.read<PrayerTimesCubit>().getPrayerTimes();
-                      },
+                      onPressed: () => context.read<PrayerTimesCubit>().getPrayerTimes(),
                       icon: const Icon(Icons.refresh),
                       label: Text(s.retry),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                        foregroundColor: Colors.white,
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: accentColor, foregroundColor: Colors.white),
                     ),
                   ],
                 ),
               ),
             );
-          } else if (state is PrayerTimesSuccess) {
+          }
+
+          if (state is PrayerTimesSuccess) {
             final prayerTimes = state.prayerTimes;
             final locationName = state.locationName;
             final isFallback = state.isFallbackLocation;
-
             final activePrayerName = _determineActivePrayer(prayerTimes.timings);
             final s = S.of(context);
             final localizedActivePrayer = _localizePrayerName(activePrayerName, s);
@@ -286,47 +182,27 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 SliverFillRemaining(
                   hasScrollBody: false,
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      20,
-                      16,
-                      20,
-                      12,
-                    ),
+                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                         PrayerTimesHeader(
+                        PrayerTimesHeader(
                           location: (() {
-                            if (locationName == 'Current Location') {
-                              return S.current.currentLocationFallback;
-                            }
-                            return isFallback
-                                ? '$locationName ${S.current.savedSuffix}'
-                                : locationName;
+                            if (locationName == 'Current Location') return S.current.currentLocationFallback;
+                            return isFallback ? '$locationName ${S.current.savedSuffix}' : locationName;
                           })(),
                           hijriDate: _buildHijriDate(prayerTimes.date),
                           gregorianDate: _buildGregorianDate(prayerTimes.date),
-                          currentLocationFallbackLabel:
-                              S.current.currentLocationFallback,
+                          currentLocationFallbackLabel: S.current.currentLocationFallback,
                         ),
                         const SizedBox(height: 6),
                         SizedBox(
                           height: 220,
                           child: PrayerTimesHero(
                             prayerName: localizedActivePrayer,
-                            prayerTime: _localizeDigits(
-                              _getPrayerTimeByName(
-                                prayerTimes.timings,
-                                activePrayerName,
-                              ),
-                            ),
-                            countdown: _localizeDigits(
-                              _calculateCountdown(
-                                prayerTimes.timings,
-                                activePrayerName,
-                              ),
-                            ),
-                            progress: 0.65,
+                            prayerTime: _localizeDigits(_getPrayerTimeByName(prayerTimes.timings, activePrayerName)),
+                            countdown: _localizeDigits(_calculateCountdown(prayerTimes.timings, activePrayerName)),
+                            progress: _calculateProgress(prayerTimes.timings, activePrayerName),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -360,51 +236,34 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       {'name': 'Maghrib', 'time': timings.maghrib},
       {'name': 'Isha', 'time': timings.isha},
     ];
-
     for (final prayer in times) {
       final prayerDateTime = _parseTimeString(now, prayer['time']!);
-      if (prayerDateTime != null && prayerDateTime.isAfter(now)) {
-        return prayer['name']!;
-      }
+      if (prayerDateTime != null && prayerDateTime.isAfter(now)) return prayer['name']!;
     }
     return 'Fajr';
   }
 
   String _localizePrayerName(String name, S s) {
     switch (name) {
-      case 'Fajr':
-        return s.prayerFajr;
-      case 'Sunrise':
-        return s.prayerSunrise;
-      case 'Dhuhr':
-        return s.prayerDhuhr;
-      case 'Asr':
-        return s.prayerAsr;
-      case 'Maghrib':
-        return s.prayerMaghrib;
-      case 'Isha':
-        return s.prayerIsha;
-      default:
-        return s.prayerFajr;
+      case 'Fajr': return s.prayerFajr;
+      case 'Sunrise': return s.prayerSunrise;
+      case 'Dhuhr': return s.prayerDhuhr;
+      case 'Asr': return s.prayerAsr;
+      case 'Maghrib': return s.prayerMaghrib;
+      case 'Isha': return s.prayerIsha;
+      default: return s.prayerFajr;
     }
   }
 
   String _getPrayerTimeByName(Timings timings, String name) {
     switch (name) {
-      case 'Fajr':
-        return timings.fajr;
-      case 'Sunrise':
-        return timings.sunrise;
-      case 'Dhuhr':
-        return timings.dhuhr;
-      case 'Asr':
-        return timings.asr;
-      case 'Maghrib':
-        return timings.maghrib;
-      case 'Isha':
-        return timings.isha;
-      default:
-        return timings.dhuhr;
+      case 'Fajr': return timings.fajr;
+      case 'Sunrise': return timings.sunrise;
+      case 'Dhuhr': return timings.dhuhr;
+      case 'Asr': return timings.asr;
+      case 'Maghrib': return timings.maghrib;
+      case 'Isha': return timings.isha;
+      default: return timings.dhuhr;
     }
   }
 
@@ -412,27 +271,50 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final now = DateTime.now();
     final timeStr = _getPrayerTimeByName(timings, nextPrayerName);
     var target = _parseTimeString(now, timeStr);
-
     if (target == null) return '00:00:00';
-    if (target.isBefore(now)) {
-      target = target.add(const Duration(days: 1));
-    }
-
+    if (target.isBefore(now)) target = target.add(const Duration(days: 1));
     final diff = target.difference(now);
-    final hours = diff.inHours.toString().padLeft(2, '0');
-    final minutes = (diff.inMinutes % 60).toString().padLeft(2, '0');
-    final seconds = (diff.inSeconds % 60).toString().padLeft(2, '0');
+    return '${diff.inHours.toString().padLeft(2, '0')}:${(diff.inMinutes % 60).toString().padLeft(2, '0')}:${(diff.inSeconds % 60).toString().padLeft(2, '0')}';
+  }
 
-    return '$hours:$minutes:$seconds';
+  double _calculateProgress(Timings timings, String nextPrayerName) {
+    final now = DateTime.now();
+    final prayers = [
+      {'name': 'Fajr', 'time': timings.fajr},
+      {'name': 'Sunrise', 'time': timings.sunrise},
+      {'name': 'Dhuhr', 'time': timings.dhuhr},
+      {'name': 'Asr', 'time': timings.asr},
+      {'name': 'Maghrib', 'time': timings.maghrib},
+      {'name': 'Isha', 'time': timings.isha},
+    ];
+    final nextIndex = prayers.indexWhere((p) => p['name'] == nextPrayerName);
+    if (nextIndex == -1) return 0;
+
+    var nextTime = _parseTimeString(now, prayers[nextIndex]['time']!);
+    if (nextTime == null) return 0;
+
+    DateTime? previousTime;
+    if (nextIndex > 0) {
+      previousTime = _parseTimeString(now, prayers[nextIndex - 1]['time']!);
+    } else {
+      previousTime = _parseTimeString(now, prayers.last['time']!);
+      previousTime = previousTime?.subtract(const Duration(days: 1));
+    }
+    if (previousTime == null) return 0;
+    if (nextTime.isBefore(previousTime)) nextTime = nextTime.add(const Duration(days: 1));
+    if (now.isBefore(previousTime)) previousTime = previousTime.subtract(const Duration(days: 1));
+
+    final totalSeconds = nextTime.difference(previousTime).inSeconds;
+    final elapsedSeconds = now.difference(previousTime).inSeconds;
+    if (totalSeconds <= 0) return 0;
+    return (elapsedSeconds / totalSeconds).clamp(0.0, 1.0);
   }
 
   DateTime? _parseTimeString(DateTime baseDate, String timeStr) {
     try {
-      final cleanStr = timeStr.split(' ')[0];
+      final cleanStr = timeStr.trim().split(' ')[0];
       final parts = cleanStr.split(':');
-      final hour = int.parse(parts[0]);
-      final minute = int.parse(parts[1]);
-      return DateTime(baseDate.year, baseDate.month, baseDate.day, hour, minute);
+      return DateTime(baseDate.year, baseDate.month, baseDate.day, int.parse(parts[0]), int.parse(parts[1]));
     } catch (_) {
       return null;
     }
@@ -441,21 +323,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Widget _buildPlaceholderContent() {
     final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    final primaryText = isDark
-        ? AppColors.darkPrimaryText
-        : AppColors.lightPrimaryText;
-
-    return Center(
-      child: Text(
-        s.comingSoon,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: primaryText,
-        ),
-      ),
-    );
+    final primaryText = isDark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText;
+    return Center(child: Text(s.comingSoon, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: primaryText)));
   }
 
   String _buildHijriDate(Date date) {
@@ -468,40 +337,28 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   String _buildGregorianDate(Date date) {
     final value = date.gregorian;
-    if (widget.locale.languageCode == 'ar') {
-      return _toArabicIndic(value);
-    }
-    return value;
+    return widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
   }
 
-  String _localizeDigits(String value) {
-    if (widget.locale.languageCode == 'ar') {
-      return _toArabicIndic(value);
-    }
-    return value;
-  }
+  String _localizeDigits(String value) => widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
 
   Timings _localizedTimings(Timings timings) {
-    if (widget.locale.languageCode == 'ar') {
-      return Timings(
-        fajr: _toArabicIndic(timings.fajr),
-        sunrise: _toArabicIndic(timings.sunrise),
-        dhuhr: _toArabicIndic(timings.dhuhr),
-        asr: _toArabicIndic(timings.asr),
-        maghrib: _toArabicIndic(timings.maghrib),
-        isha: _toArabicIndic(timings.isha),
-      );
-    }
-    return timings;
+    if (widget.locale.languageCode != 'ar') return timings;
+    return Timings(
+      fajr: _toArabicIndic(timings.fajr),
+      sunrise: _toArabicIndic(timings.sunrise),
+      dhuhr: _toArabicIndic(timings.dhuhr),
+      asr: _toArabicIndic(timings.asr),
+      maghrib: _toArabicIndic(timings.maghrib),
+      isha: _toArabicIndic(timings.isha),
+    );
   }
 
   String _toArabicIndic(String input) {
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     var result = input;
-    for (int i = 0; i < english.length; i++) {
-      result = result.replaceAll(english[i], arabic[i]);
-    }
+    for (int i = 0; i < english.length; i++) result = result.replaceAll(english[i], arabic[i]);
     return result;
   }
 }
