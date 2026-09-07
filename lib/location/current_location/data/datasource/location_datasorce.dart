@@ -1,6 +1,6 @@
-import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:nidaa_v2/location/current_location/data/exception/exception.dart'
     hide LocationServiceDisabledException;
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
@@ -8,7 +8,7 @@ import 'package:nidaa_v2/location/current_location/data/models/location_model.da
 import 'package:geolocator/geolocator.dart' as geo;
 
 class LocationDatasource {
-  Future<LocationModel> getLocationData({Locale? locale}) async {
+  Future<LocationModel> getLocationData() async {
     final serviceEnabled = await geo.Geolocator.isLocationServiceEnabled();
 
     if (!serviceEnabled) {
@@ -37,7 +37,7 @@ class LocationDatasource {
       final placemarks = await Geocoding().placemarkFromCoordinates(
         position.latitude,
         position.longitude,
-        locale: locale?.toLanguageTag(),
+        locale: Intl.getCurrentLocale(),
       );
 
       if (placemarks.isNotEmpty) {
