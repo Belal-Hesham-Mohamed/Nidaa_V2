@@ -59,7 +59,7 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
 
   // Location datasource
   sl.registerLazySingleton<LocationDatasource>(
-    () => LocationDatasource(sl<SettingsLocalDataSource>()),
+    () => LocationDatasource(),
   );
 
   // Local location datasource
