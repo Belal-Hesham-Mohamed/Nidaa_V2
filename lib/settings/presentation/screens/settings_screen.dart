@@ -26,7 +26,11 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openLocationFlow() async {
     await Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => const ManualLocationScreen()),
+      PageRouteBuilder<void>(
+        transitionDuration: Duration.zero,
+        reverseTransitionDuration: Duration.zero,
+        pageBuilder: (_, __, ___) => const ManualLocationScreen(),
+      ),
     );
     if (mounted) widget.onLocationChanged();
   }
