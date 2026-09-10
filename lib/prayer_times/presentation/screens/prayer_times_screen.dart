@@ -36,6 +36,7 @@ class PrayerTimesScreen extends StatefulWidget {
 
 class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   int currentIndex = 0;
+
   late final PrayerTimesCubit _prayerTimesCubit;
   Timer? _timer;
 
@@ -145,7 +146,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
           if (state is PrayerTimesLoading) {
             return const Center(child: CircularProgressIndicator());
           }
-
           if (state is PrayerTimesFailure) {
             final s = S.of(context);
             final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -183,48 +183,35 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       onPressed: () => context.read<PrayerTimesCubit>().getPrayerTimes(),
                       icon: const Icon(Icons.refresh),
                       label: Text(s.retry),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: accentColor,
-                        foregroundColor: Colors.white,
-                      ),
+                      style: ElevatedButton.styleFrom(backgroundColor: accentColor, foregroundColor: Colors.white),
                     ),
                   ],
                 ),
               ),
             );
           }
-
           if (state is PrayerTimesSuccess) {
             final prayerTimes = state.prayerTimes;
             final isFallback = state.isFallbackLocation;
             final activePrayerName = _determineActivePrayer(prayerTimes.timings);
             final s = S.of(context);
             final localizedActivePrayer = _localizePrayerName(activePrayerName, s);
-
             final Widget locationHeader;
             if (state.currentLocation == null) {
-              final locationName = isFallback
-                  ? '${state.locationName} ${S.current.savedSuffix}'
-                  : state.locationName;
+              final locationName = isFallback ? '${state.locationName} ${S.current.savedSuffix}' : state.locationName;
               locationHeader = PrayerTimesHeader(
-                location: locationName == 'Current Location'
-                    ? S.current.currentLocationFallback
-                    : locationName,
+                location: locationName == 'Current Location' ? S.current.currentLocationFallback : locationName,
                 hijriDate: _buildHijriDate(prayerTimes.date),
                 gregorianDate: _buildGregorianDate(prayerTimes.date),
                 currentLocationFallbackLabel: S.current.currentLocationFallback,
               );
             } else {
               locationHeader = FutureBuilder<String>(
-                key: ValueKey(
-                  '${state.currentLocation!.latitude}_${state.currentLocation!.longitude}_${widget.locale.languageCode}',
-                ),
+                key: ValueKey('${state.currentLocation!.latitude}_${state.currentLocation!.longitude}_${widget.locale.languageCode}'),
                 future: _localizedCurrentLocation(state.currentLocation!, widget.locale),
                 builder: (context, snapshot) {
                   final locationName = snapshot.data ?? state.locationName;
-                  final displayName = isFallback
-                      ? '$locationName ${S.current.savedSuffix}'
-                      : locationName;
+                  final displayName = isFallback ? '$locationName ${S.current.savedSuffix}' : locationName;
                   return PrayerTimesHeader(
                     location: displayName,
                     hijriDate: _buildHijriDate(prayerTimes.date),
@@ -234,7 +221,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 },
               );
             }
-
             return CustomScrollView(
               slivers: [
                 SliverFillRemaining(
@@ -250,12 +236,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                           height: 220,
                           child: PrayerTimesHero(
                             prayerName: localizedActivePrayer,
-                            prayerTime: _localizeDigits(
-                              _getPrayerTimeByName(prayerTimes.timings, activePrayerName),
-                            ),
-                            countdown: _localizeDigits(
-                              _calculateCountdown(prayerTimes.timings, activePrayerName),
-                            ),
+                            prayerTime: _localizeDigits(_getPrayerTimeByName(prayerTimes.timings, activePrayerName)),
+                            countdown: _localizeDigits(_calculateCountdown(prayerTimes.timings, activePrayerName)),
                             progress: _calculateProgress(prayerTimes.timings, activePrayerName),
                           ),
                         ),
@@ -273,7 +255,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
               ],
             );
           }
-
           return const SizedBox.shrink();
         },
       ),
@@ -343,10 +324,8 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     ];
     final nextIndex = prayers.indexWhere((p) => p['name'] == nextPrayerName);
     if (nextIndex == -1) return 0;
-
     var nextTime = _parseTimeString(now, prayers[nextIndex]['time']!);
     if (nextTime == null) return 0;
-
     DateTime? previousTime;
     if (nextIndex > 0) {
       previousTime = _parseTimeString(now, prayers[nextIndex - 1]['time']!);
@@ -357,7 +336,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     if (previousTime == null) return 0;
     if (nextTime.isBefore(previousTime)) nextTime = nextTime.add(const Duration(days: 1));
     if (now.isBefore(previousTime)) previousTime = previousTime.subtract(const Duration(days: 1));
-
     final totalSeconds = nextTime.difference(previousTime).inSeconds;
     final elapsedSeconds = now.difference(previousTime).inSeconds;
     if (totalSeconds <= 0) return 0;
@@ -368,13 +346,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     try {
       final cleanStr = timeStr.trim().split(' ')[0];
       final parts = cleanStr.split(':');
-      return DateTime(
-        baseDate.year,
-        baseDate.month,
-        baseDate.day,
-        int.parse(parts[0]),
-        int.parse(parts[1]),
-      );
+      return DateTime(baseDate.year, baseDate.month, baseDate.day, int.parse(parts[0]), int.parse(parts[1]));
     } catch (_) {
       return null;
     }
@@ -384,16 +356,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryText = isDark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText;
-    return Center(
-      child: Text(
-        s.comingSoon,
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: primaryText,
-        ),
-      ),
-    );
+    return Center(child: Text(s.comingSoon, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: primaryText)));
   }
 
   String _buildHijriDate(Date date) {
