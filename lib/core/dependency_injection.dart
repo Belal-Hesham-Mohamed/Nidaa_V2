@@ -167,11 +167,13 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
     ),
   );
 
-  // Qibla use case and Cubit
+  // Qibla use case and Cubit. The Cubit owns the compass subscription for the
+  // app session so navigating away from and back to Qibla does not restart
+  // initialization or lose the calculated bearing.
   sl.registerLazySingleton<CalculateQiblaBearingUseCase>(
     () => CalculateQiblaBearingUseCase(),
   );
-  sl.registerFactory<QiblaCubit>(
+  sl.registerLazySingleton<QiblaCubit>(
     () => QiblaCubit(sl<CalculateQiblaBearingUseCase>()),
   );
 }
