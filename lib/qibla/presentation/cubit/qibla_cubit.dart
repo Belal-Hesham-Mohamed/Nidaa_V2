@@ -10,20 +10,21 @@ import 'package:nidaa_v2/qibla/domain/usecase/calculate_qibla_bearing_usecase.da
 part 'qibla_state.dart';
 
 class QiblaCubit extends Cubit<QiblaState> {
+  QiblaCubit(this._calculateQiblaBearingUseCase) : super(QiblaInitial()) {
+    _subscribeToCompass();
+  }
+
   final CalculateQiblaBearingUseCase _calculateQiblaBearingUseCase;
   StreamSubscription<CompassEvent>? _compassSubscription;
   double? _qiblaBearing;
   double? _deviceHeading;
 
-  // A light circular low-pass filter removes magnetometer jitter without
-  // making normal phone rotation feel delayed.
-  static const _headingSmoothingFactor = 0.25;
+  // Keep the compass responsive while filtering normal magnetometer jitter.
+  static const _headingSmoothingFactor = 0.45;
 
-  QiblaCubit(this._calculateQiblaBearingUseCase) : super(QiblaInitial()) {
-    // The Cubit owns the one sensor subscription for its entire lifetime.
-    // It is deliberately started here, never from a widget build method.
-    _subscribeToCompass();
-  }
+  bool get isInitialized => _qiblaBearing != null;
+
+  double? get qiblaBearing => _qiblaBearing;
 
   void _subscribeToCompass() {
     final compassEvents = FlutterCompass.events;
@@ -40,12 +41,11 @@ class QiblaCubit extends Cubit<QiblaState> {
 
   void _onCompassEvent(CompassEvent event) {
     final heading = event.heading;
-    // flutter_compass can report null while the platform sensor is not ready.
-    // Do not replace a good reading with an error or a fake number.
     if (heading == null || !heading.isFinite) return;
 
     final normalizedHeading = QiblaAngle.normalize(heading);
     final previousHeading = _deviceHeading;
+
     if (previousHeading == null) {
       _deviceHeading = normalizedHeading;
     } else {
@@ -57,6 +57,7 @@ class QiblaCubit extends Cubit<QiblaState> {
         previousHeading + delta * _headingSmoothingFactor,
       );
     }
+
     _emitSuccessIfReady();
   }
 
@@ -70,16 +71,16 @@ class QiblaCubit extends Cubit<QiblaState> {
       return;
     }
 
-    final relativeAngle = QiblaAngle.normalize(qiblaBearing - deviceHeading);
     final shortestAngle = QiblaAngle.shortestDifference(
       qiblaBearing,
       deviceHeading,
     );
+
     emit(
       QiblaSuccess(
         qiblaBearing: qiblaBearing,
         deviceHeading: deviceHeading,
-        relativeAngle: relativeAngle,
+        relativeAngle: QiblaAngle.normalize(qiblaBearing - deviceHeading),
         shortestAngle: shortestAngle,
         isAligned: shortestAngle.abs() <= 5.0,
       ),
@@ -87,9 +88,14 @@ class QiblaCubit extends Cubit<QiblaState> {
   }
 
   void calculateQiblaBearing(Location? location) {
-    // Location is loaded once by the screen. Updating it must not put an
-    // already initialized compass back into a loading state.
-    if (_qiblaBearing == null) emit(QiblaLoading());
+    // Once calculated, keep the cached bearing. Compass events continue to
+    // update the heading without reloading location or recalculating Qibla.
+    if (_qiblaBearing != null) {
+      _emitSuccessIfReady();
+      return;
+    }
+
+    emit(QiblaLoading());
 
     if (location == null) {
       emit(QiblaFailure(QiblaErrorKey.locationUnavailable));
