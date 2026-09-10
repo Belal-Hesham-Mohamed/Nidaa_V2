@@ -18,7 +18,6 @@ class AppColors {
   static const darkAccentGold = Color(0xFFF4D58D);
   static const darkAccentTeal = Color(0xFF5BC0BE);
 
-
   // =========================
   // Light Theme
   // =========================
@@ -34,6 +33,19 @@ class AppColors {
   static const lightAccentBlue = Color(0xFF3B82F6);
   static const lightAccentBlueLight = Color(0xFFE8F1FE);
 
+  // =========================
+  // Qibla
+  // =========================
+
+  static const qiblaBackgroundTop = Color(0xFF12343F);
+  static const qiblaBackgroundMiddle = Color(0xFF0B2632);
+  static const qiblaBackgroundBottom = Color(0xFF06151F);
+
+  static const qiblaCompassSurface = Color(0xFF08212C);
+  static const qiblaCompassRing = Color(0xFF5BC0BE);
+  static const qiblaCompassRingAligned = Color(0xFF69E38A);
+  static const qiblaAccentGold = Color(0xFFF4D58D);
+  static const qiblaGuide = Color(0xFF8AA8B2);
 
   // =========================
   // Common
