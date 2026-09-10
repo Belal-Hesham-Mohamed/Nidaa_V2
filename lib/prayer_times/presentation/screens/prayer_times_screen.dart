@@ -12,6 +12,7 @@ import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_header.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_hero.dart';
 import 'package:nidaa_v2/prayer_times/presentation/widgets/prayer_times_list.dart';
+import 'package:nidaa_v2/qibla/presentation/screens/qibla_screen.dart';
 import 'package:nidaa_v2/settings/presentation/screens/settings_screen.dart';
 
 class PrayerTimesScreen extends StatefulWidget {
@@ -139,6 +140,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   Widget _buildCurrentTab() {
     if (currentIndex == 0) return _buildPrayerTimesContent();
+    if (currentIndex == 1) return const QiblaScreen();
     if (currentIndex == 3) {
       return SettingsScreen(
         themeMode: widget.themeMode,
