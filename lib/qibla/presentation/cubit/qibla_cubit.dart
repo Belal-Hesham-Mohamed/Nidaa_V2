@@ -27,7 +27,7 @@ class QiblaCubit extends Cubit<QiblaState> {
 
     _compassSubscription = compassEvents.listen(
       _onCompassEvent,
-      onError: (_, __) => emit(QiblaFailure(QiblaErrorKey.compassError)),
+      onError: (_, _) => emit(QiblaFailure(QiblaErrorKey.compassError)),
     );
   }
 
@@ -38,14 +38,42 @@ class QiblaCubit extends Cubit<QiblaState> {
       return;
     }
 
-    _deviceHeading = heading;
+    _deviceHeading = _normalizeAngle(heading);
+    _emitSuccessIfReady();
+  }
+
+  void _emitSuccessIfReady() {
     final qiblaBearing = _qiblaBearing;
-    if (qiblaBearing != null) {
-      emit(QiblaSuccess(
-        qiblaBearing: qiblaBearing,
-        deviceHeading: heading,
-      ));
+    final deviceHeading = _deviceHeading;
+    if (qiblaBearing == null) return;
+
+    if (deviceHeading == null) {
+      emit(QiblaSuccess(qiblaBearing: qiblaBearing));
+      return;
     }
+
+    final relativeAngle = _normalizeAngle(qiblaBearing - deviceHeading);
+    final shortestAngle = _shortestAngle(qiblaBearing, deviceHeading);
+    emit(
+      QiblaSuccess(
+        qiblaBearing: qiblaBearing,
+        deviceHeading: deviceHeading,
+        relativeAngle: relativeAngle,
+        shortestAngle: shortestAngle,
+        isAligned: shortestAngle.abs() <= 5.0,
+      ),
+    );
+  }
+
+  double _normalizeAngle(double angle) {
+    return (angle % 360 + 360) % 360;
+  }
+
+  double _shortestAngle(double targetAngle, double currentAngle) {
+    final normalizedDifference = _normalizeAngle(targetAngle - currentAngle);
+    return normalizedDifference > 180
+        ? normalizedDifference - 360
+        : normalizedDifference;
   }
 
   void calculateQiblaBearing(Location? location) {
@@ -72,10 +100,7 @@ class QiblaCubit extends Cubit<QiblaState> {
       latitude: latitude,
       longitude: longitude,
     );
-    emit(QiblaSuccess(
-      qiblaBearing: _qiblaBearing!,
-      deviceHeading: _deviceHeading,
-    ));
+    _emitSuccessIfReady();
   }
 
   @override

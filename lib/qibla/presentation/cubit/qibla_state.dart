@@ -10,10 +10,16 @@ final class QiblaLoading extends QiblaState {}
 final class QiblaSuccess extends QiblaState {
   final double qiblaBearing;
   final double? deviceHeading;
+  final double? relativeAngle;
+  final double? shortestAngle;
+  final bool isAligned;
 
   QiblaSuccess({
     required this.qiblaBearing,
     this.deviceHeading,
+    this.relativeAngle,
+    this.shortestAngle,
+    this.isAligned = false,
   });
 }
 
