@@ -539,6 +539,126 @@ class S {
       args: [],
     );
   }
+
+  /// `Skip`
+  String get onboardingSkip {
+    return Intl.message('Skip', name: 'onboardingSkip', desc: '', args: []);
+  }
+
+  /// `Next`
+  String get onboardingNext {
+    return Intl.message('Next', name: 'onboardingNext', desc: '', args: []);
+  }
+
+  /// `Get Started`
+  String get onboardingGetStarted {
+    return Intl.message(
+      'Get Started',
+      name: 'onboardingGetStarted',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Welcome to Nidaa`
+  String get onboardingWelcomeTitle {
+    return Intl.message(
+      'Welcome to Nidaa',
+      name: 'onboardingWelcomeTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Your companion for prayer times, Qibla direction, and daily Azkar.`
+  String get onboardingWelcomeDescription {
+    return Intl.message(
+      'Your companion for prayer times, Qibla direction, and daily Azkar.',
+      name: 'onboardingWelcomeDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Never Miss a Prayer`
+  String get onboardingPrayerTitle {
+    return Intl.message(
+      'Never Miss a Prayer',
+      name: 'onboardingPrayerTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Stay connected to your prayers with accurate prayer times based on your location.`
+  String get onboardingPrayerDescription {
+    return Intl.message(
+      'Stay connected to your prayers with accurate prayer times based on your location.',
+      name: 'onboardingPrayerDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Find the Qibla`
+  String get onboardingQiblaTitle {
+    return Intl.message(
+      'Find the Qibla',
+      name: 'onboardingQiblaTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Easily find the direction of the Kaaba wherever you are.`
+  String get onboardingQiblaDescription {
+    return Intl.message(
+      'Easily find the direction of the Kaaba wherever you are.',
+      name: 'onboardingQiblaDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Remember Allah`
+  String get onboardingAzkarTitle {
+    return Intl.message(
+      'Remember Allah',
+      name: 'onboardingAzkarTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Keep your daily Azkar close and make remembrance of Allah part of your day.`
+  String get onboardingAzkarDescription {
+    return Intl.message(
+      'Keep your daily Azkar close and make remembrance of Allah part of your day.',
+      name: 'onboardingAzkarDescription',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Ready to Begin?`
+  String get onboardingReadyTitle {
+    return Intl.message(
+      'Ready to Begin?',
+      name: 'onboardingReadyTitle',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Start your journey with Nidaa and make every prayer count.`
+  String get onboardingReadyDescription {
+    return Intl.message(
+      'Start your journey with Nidaa and make every prayer count.',
+      name: 'onboardingReadyDescription',
+      desc: '',
+      args: [],
+    );
+  }
 }
 
 class AppLocalizationDelegate extends LocalizationsDelegate<S> {

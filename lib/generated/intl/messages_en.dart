@@ -129,5 +129,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "weekdayThursday": MessageLookupByLibrary.simpleMessage("Thursday"),
     "weekdayTuesday": MessageLookupByLibrary.simpleMessage("Tuesday"),
     "weekdayWednesday": MessageLookupByLibrary.simpleMessage("Wednesday"),
+
+    "onboardingSkip": MessageLookupByLibrary.simpleMessage("Skip"),
+    "onboardingNext": MessageLookupByLibrary.simpleMessage("Next"),
+    "onboardingGetStarted": MessageLookupByLibrary.simpleMessage("Get Started"),
+    "onboardingWelcomeTitle": MessageLookupByLibrary.simpleMessage("Welcome to Nidaa"),
+    "onboardingWelcomeDescription": MessageLookupByLibrary.simpleMessage("Your companion for prayer times, Qibla direction, and daily Azkar."),
+    "onboardingPrayerTitle": MessageLookupByLibrary.simpleMessage("Never Miss a Prayer"),
+    "onboardingPrayerDescription": MessageLookupByLibrary.simpleMessage("Stay connected to your prayers with accurate prayer times based on your location."),
+    "onboardingQiblaTitle": MessageLookupByLibrary.simpleMessage("Find the Qibla"),
+    "onboardingQiblaDescription": MessageLookupByLibrary.simpleMessage("Easily find the direction of the Kaaba wherever you are."),
+    "onboardingAzkarTitle": MessageLookupByLibrary.simpleMessage("Remember Allah"),
+    "onboardingAzkarDescription": MessageLookupByLibrary.simpleMessage("Keep your daily Azkar close and make remembrance of Allah part of your day."),
+    "onboardingReadyTitle": MessageLookupByLibrary.simpleMessage("Ready to Begin?"),
+    "onboardingReadyDescription": MessageLookupByLibrary.simpleMessage("Start your journey with Nidaa and make every prayer count."),
   };
 }

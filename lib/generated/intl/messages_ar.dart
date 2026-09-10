@@ -129,5 +129,19 @@ class MessageLookup extends MessageLookupByLibrary {
     "weekdayThursday": MessageLookupByLibrary.simpleMessage("الخميس"),
     "weekdayTuesday": MessageLookupByLibrary.simpleMessage("الثلاثاء"),
     "weekdayWednesday": MessageLookupByLibrary.simpleMessage("الأربعاء"),
+
+    "onboardingSkip": MessageLookupByLibrary.simpleMessage("تخطي"),
+    "onboardingNext": MessageLookupByLibrary.simpleMessage("التالي"),
+    "onboardingGetStarted": MessageLookupByLibrary.simpleMessage("ابدأ الآن"),
+    "onboardingWelcomeTitle": MessageLookupByLibrary.simpleMessage("مرحبًا بك في نداء"),
+    "onboardingWelcomeDescription": MessageLookupByLibrary.simpleMessage("رفيقك لمعرفة أوقات الصلاة، واتجاه القبلة، وأذكارك اليومية."),
+    "onboardingPrayerTitle": MessageLookupByLibrary.simpleMessage("لا تفوّت صلاة"),
+    "onboardingPrayerDescription": MessageLookupByLibrary.simpleMessage("ابقَ على صلة بصلواتك مع أوقات صلاة دقيقة بناءً على موقعك."),
+    "onboardingQiblaTitle": MessageLookupByLibrary.simpleMessage("اعرف اتجاه القبلة"),
+    "onboardingQiblaDescription": MessageLookupByLibrary.simpleMessage("اعثر بسهولة على اتجاه الكعبة المشرفة أينما كنت."),
+    "onboardingAzkarTitle": MessageLookupByLibrary.simpleMessage("اذكر الله"),
+    "onboardingAzkarDescription": MessageLookupByLibrary.simpleMessage("اجعل أذكارك اليومية قريبة منك، واجعل ذكر الله جزءًا من يومك."),
+    "onboardingReadyTitle": MessageLookupByLibrary.simpleMessage("هل أنت مستعد للبدء؟"),
+    "onboardingReadyDescription": MessageLookupByLibrary.simpleMessage("ابدأ رحلتك مع نداء، واجعل لكل صلاة أثرًا في حياتك."),
   };
 }

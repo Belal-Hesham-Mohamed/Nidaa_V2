@@ -3,6 +3,7 @@ import 'package:hive/hive.dart';
 class SettingsLocalDataSource {
   static const String _boxName = 'settingsBox';
   static const String _localeKey = 'locale';
+  static const String _onboardingCompletedKey = 'onboardingCompleted';
 
   final Box _box;
 
@@ -23,5 +24,14 @@ class SettingsLocalDataSource {
 
   Future<void> saveLocaleCode(String code) async {
     await _box.put(_localeKey, code);
+  }
+
+  bool isOnboardingCompleted() {
+    final value = _box.get(_onboardingCompletedKey);
+    return value == true;
+  }
+
+  Future<void> setOnboardingCompleted(bool completed) async {
+    await _box.put(_onboardingCompletedKey, completed);
   }
 }

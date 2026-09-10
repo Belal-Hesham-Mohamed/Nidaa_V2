@@ -8,12 +8,12 @@ import 'package:nidaa_v2/core/settings/settings_local_datasource.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
 import 'package:nidaa_v2/location/manual_location/data/models/manual_location_model.dart';
+import 'package:nidaa_v2/onboarding/presentation/screens/onboarding_screen.dart';
 import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 import 'package:nidaa_v2/prayer_times/presentation/screens/prayer_times_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    WidgetsFlutterBinding.ensureInitialized();
 
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
@@ -52,12 +52,14 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   ThemeMode _themeMode = ThemeMode.system;
   late Locale _locale;
+  bool _showOnboarding = false;
 
   @override
   void initState() {
     super.initState();
     final savedCode = widget.settingsLocalDataSource.getLocaleCode();
     _locale = Locale(savedCode ?? 'en');
+    _showOnboarding = !widget.settingsLocalDataSource.isOnboardingCompleted();
   }
 
   Future<void> _setLocale(Locale locale) async {
@@ -68,17 +70,25 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void _onOnboardingComplete() async {
+    await widget.settingsLocalDataSource.setOnboardingCompleted(true);
+    if (!mounted) return;
+    setState(() {
+      _showOnboarding = false;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-        localizationsDelegates: [
-                S.delegate,
-                GlobalMaterialLocalizations.delegate,
-                GlobalWidgetsLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: S.delegate.supportedLocales,
+      localizationsDelegates: [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: S.delegate.supportedLocales,
       onGenerateTitle: (context) => S.of(context).appTitle,
       locale: _locale,
       themeMode: _themeMode,
@@ -98,12 +108,14 @@ class _MyAppState extends State<MyApp> {
           onSurface: AppColors.darkPrimaryText,
         ),
       ),
-      home: PrayerTimesScreen(
-        themeMode: _themeMode,
-        onThemeModeChanged: (mode) => setState(() => _themeMode = mode),
-        locale: _locale,
-        onLocaleChanged: _setLocale,
-      ),
+      home: _showOnboarding
+          ? OnboardingScreen(onComplete: _onOnboardingComplete)
+          : PrayerTimesScreen(
+              themeMode: _themeMode,
+              onThemeModeChanged: (mode) => setState(() => _themeMode = mode),
+              locale: _locale,
+              onLocaleChanged: _setLocale,
+            ),
     );
   }
 }
