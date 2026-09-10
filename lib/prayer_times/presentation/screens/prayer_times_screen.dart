@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
+import 'package:nidaa_v2/core/widgets/app_bottom_navigation_bar.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
@@ -61,14 +62,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   Future<String> _localizedCurrentLocation(Location location, Locale locale) async {
     if (locale.languageCode == 'en') return _canonicalLocationName(location);
-
     try {
       final placemarks = await Geocoding().placemarkFromCoordinates(
         location.latitude,
         location.longitude,
         locale: Locale(locale.languageCode),
       );
-
       if (placemarks.isNotEmpty) {
         final placemark = placemarks.first;
         final parts = <String>[];
@@ -79,7 +78,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         if (parts.isNotEmpty) return parts.join(', ');
       }
     } catch (_) {}
-
     return _canonicalLocationName(location);
   }
 
@@ -92,48 +90,34 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final backgroundColor = isDark ? AppColors.darkBackground : AppColors.lightBackground;
-    final navigationColor = isDark ? AppColors.darkSurface : AppColors.lightSurface;
-    final inactiveColor = isDark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText;
-    final activeColor = isDark ? AppColors.darkAccentGold : AppColors.lightAccentBlue;
 
     return Scaffold(
       backgroundColor: backgroundColor,
-      extendBody: true,
       body: Stack(
         children: [
-          Positioned.fill(child: Image.asset('assets/images/light_background.png', fit: BoxFit.cover)),
-          Positioned.fill(child: Container(color: isDark ? Colors.black.withValues(alpha: 0.45) : Colors.white.withValues(alpha: 0.01))),
+          Positioned.fill(
+            child: Image.asset(
+              'assets/images/light_background.png',
+              fit: BoxFit.cover,
+            ),
+          ),
+          Positioned.fill(
+            child: Container(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.45)
+                  : Colors.white.withValues(alpha: 0.01),
+            ),
+          ),
           SafeArea(child: _buildCurrentTab()),
         ],
       ),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 10),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(16),
-            child: Container(
-              decoration: BoxDecoration(color: navigationColor.withValues(alpha: 0.95), borderRadius: BorderRadius.circular(16)),
-              child: NavigationBar(
-                selectedIndex: currentIndex,
-                onDestinationSelected: (index) => setState(() => currentIndex = index),
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                shadowColor: Colors.transparent,
-                surfaceTintColor: Colors.transparent,
-                indicatorColor: activeColor.withValues(alpha: 0.12),
-                destinations: [
-                  NavigationDestination(icon: Icon(Icons.access_time, color: inactiveColor), selectedIcon: Icon(Icons.access_time, color: activeColor), label: s.navPrayerTimes),
-                  NavigationDestination(icon: Icon(Icons.explore_outlined, color: inactiveColor), selectedIcon: Icon(Icons.explore, color: activeColor), label: s.navQibla),
-                  NavigationDestination(icon: Icon(Icons.menu_book_outlined, color: inactiveColor), selectedIcon: Icon(Icons.menu_book, color: activeColor), label: s.navAzkar),
-                  NavigationDestination(icon: Icon(Icons.settings_outlined, color: inactiveColor), selectedIcon: Icon(Icons.settings, color: activeColor), label: s.navSettings),
-                ],
-              ),
-            ),
-          ),
-        ),
+      bottomNavigationBar: AppBottomNavigationBar(
+        currentIndex: currentIndex,
+        onDestinationSelected: (index) {
+          setState(() => currentIndex = index);
+        },
       ),
     );
   }
@@ -158,7 +142,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
       value: _prayerTimesCubit,
       child: BlocBuilder<PrayerTimesCubit, PrayerTimesState>(
         builder: (context, state) {
-          if (state is PrayerTimesLoading) return const Center(child: CircularProgressIndicator());
+          if (state is PrayerTimesLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
           if (state is PrayerTimesFailure) {
             final s = S.of(context);
@@ -167,11 +153,21 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
             final accentColor = isDark ? AppColors.darkAccentGold : AppColors.lightAccentBlue;
             String localizedMessage;
             switch (state.errorKey) {
-              case PrayerTimesErrorKey.noSavedManualLocation: localizedMessage = s.errorNoSavedManualLocation; break;
-              case PrayerTimesErrorKey.manualLocationIncomplete: localizedMessage = s.errorManualLocationIncomplete; break;
-              case PrayerTimesErrorKey.currentLocationUnavailable: localizedMessage = s.errorCurrentLocationUnavailable; break;
-              case PrayerTimesErrorKey.noPrayerTimes: localizedMessage = s.errorNoPrayerTimes; break;
-              case PrayerTimesErrorKey.unknown: localizedMessage = state.rawMessage ?? s.errorNoPrayerTimes; break;
+              case PrayerTimesErrorKey.noSavedManualLocation:
+                localizedMessage = s.errorNoSavedManualLocation;
+                break;
+              case PrayerTimesErrorKey.manualLocationIncomplete:
+                localizedMessage = s.errorManualLocationIncomplete;
+                break;
+              case PrayerTimesErrorKey.currentLocationUnavailable:
+                localizedMessage = s.errorCurrentLocationUnavailable;
+                break;
+              case PrayerTimesErrorKey.noPrayerTimes:
+                localizedMessage = s.errorNoPrayerTimes;
+                break;
+              case PrayerTimesErrorKey.unknown:
+                localizedMessage = state.rawMessage ?? s.errorNoPrayerTimes;
+                break;
             }
             return Center(
               child: Padding(
@@ -187,7 +183,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       onPressed: () => context.read<PrayerTimesCubit>().getPrayerTimes(),
                       icon: const Icon(Icons.refresh),
                       label: Text(s.retry),
-                      style: ElevatedButton.styleFrom(backgroundColor: accentColor, foregroundColor: Colors.white),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: accentColor,
+                        foregroundColor: Colors.white,
+                      ),
                     ),
                   ],
                 ),
@@ -204,20 +203,28 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
             final Widget locationHeader;
             if (state.currentLocation == null) {
-              final locationName = isFallback ? '${state.locationName} ${S.current.savedSuffix}' : state.locationName;
+              final locationName = isFallback
+                  ? '${state.locationName} ${S.current.savedSuffix}'
+                  : state.locationName;
               locationHeader = PrayerTimesHeader(
-                location: locationName == 'Current Location' ? S.current.currentLocationFallback : locationName,
+                location: locationName == 'Current Location'
+                    ? S.current.currentLocationFallback
+                    : locationName,
                 hijriDate: _buildHijriDate(prayerTimes.date),
                 gregorianDate: _buildGregorianDate(prayerTimes.date),
                 currentLocationFallbackLabel: S.current.currentLocationFallback,
               );
             } else {
               locationHeader = FutureBuilder<String>(
-                key: ValueKey('${state.currentLocation!.latitude}_${state.currentLocation!.longitude}_${widget.locale.languageCode}'),
+                key: ValueKey(
+                  '${state.currentLocation!.latitude}_${state.currentLocation!.longitude}_${widget.locale.languageCode}',
+                ),
                 future: _localizedCurrentLocation(state.currentLocation!, widget.locale),
                 builder: (context, snapshot) {
                   final locationName = snapshot.data ?? state.locationName;
-                  final displayName = isFallback ? '$locationName ${S.current.savedSuffix}' : locationName;
+                  final displayName = isFallback
+                      ? '$locationName ${S.current.savedSuffix}'
+                      : locationName;
                   return PrayerTimesHeader(
                     location: displayName,
                     hijriDate: _buildHijriDate(prayerTimes.date),
@@ -243,8 +250,12 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                           height: 220,
                           child: PrayerTimesHero(
                             prayerName: localizedActivePrayer,
-                            prayerTime: _localizeDigits(_getPrayerTimeByName(prayerTimes.timings, activePrayerName)),
-                            countdown: _localizeDigits(_calculateCountdown(prayerTimes.timings, activePrayerName)),
+                            prayerTime: _localizeDigits(
+                              _getPrayerTimeByName(prayerTimes.timings, activePrayerName),
+                            ),
+                            countdown: _localizeDigits(
+                              _calculateCountdown(prayerTimes.timings, activePrayerName),
+                            ),
                             progress: _calculateProgress(prayerTimes.timings, activePrayerName),
                           ),
                         ),
@@ -357,7 +368,13 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     try {
       final cleanStr = timeStr.trim().split(' ')[0];
       final parts = cleanStr.split(':');
-      return DateTime(baseDate.year, baseDate.month, baseDate.day, int.parse(parts[0]), int.parse(parts[1]));
+      return DateTime(
+        baseDate.year,
+        baseDate.month,
+        baseDate.day,
+        int.parse(parts[0]),
+        int.parse(parts[1]),
+      );
     } catch (_) {
       return null;
     }
@@ -367,7 +384,16 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     final s = S.of(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primaryText = isDark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText;
-    return Center(child: Text(s.comingSoon, style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600, color: primaryText)));
+    return Center(
+      child: Text(
+        s.comingSoon,
+        style: TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: primaryText,
+        ),
+      ),
+    );
   }
 
   String _buildHijriDate(Date date) {
@@ -383,7 +409,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     return widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
   }
 
-  String _localizeDigits(String value) => widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
+  String _localizeDigits(String value) {
+    return widget.locale.languageCode == 'ar' ? _toArabicIndic(value) : value;
+  }
 
   Timings _localizedTimings(Timings timings) {
     if (widget.locale.languageCode != 'ar') return timings;
@@ -401,7 +429,9 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
     const english = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
     const arabic = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
     var result = input;
-    for (int i = 0; i < english.length; i++) result = result.replaceAll(english[i], arabic[i]);
+    for (int i = 0; i < english.length; i++) {
+      result = result.replaceAll(english[i], arabic[i]);
+    }
     return result;
   }
 }
