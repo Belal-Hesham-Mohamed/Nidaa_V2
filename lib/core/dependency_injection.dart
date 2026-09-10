@@ -28,6 +28,8 @@ import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.da
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_with_cache_usecase.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_saved_prayer_times_usecase.dart';
 import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
+import 'package:nidaa_v2/qibla/domain/usecase/calculate_qibla_bearing_usecase.dart';
+import 'package:nidaa_v2/qibla/presentation/cubit/qibla_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -163,5 +165,13 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
       sl<GetPrayerTimesUsecase>(),
       sl<GetPrayerTimesWithCacheUsecase>(),
     ),
+  );
+
+  // Qibla use case and Cubit
+  sl.registerLazySingleton<CalculateQiblaBearingUseCase>(
+    () => CalculateQiblaBearingUseCase(),
+  );
+  sl.registerFactory<QiblaCubit>(
+    () => QiblaCubit(sl<CalculateQiblaBearingUseCase>()),
   );
 }
