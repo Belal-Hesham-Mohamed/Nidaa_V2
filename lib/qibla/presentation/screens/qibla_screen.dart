@@ -7,6 +7,7 @@ import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_usecase.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_saved_current_location_usecase.dart';
+import 'package:nidaa_v2/qibla/domain/qibla_angle.dart';
 import 'package:nidaa_v2/qibla/presentation/cubit/qibla_cubit.dart';
 
 class QiblaScreen extends StatefulWidget {
@@ -59,33 +60,23 @@ class _QiblaScreenState extends State<QiblaScreen> {
   }
 
   void _updateVisualAngle(double targetDegrees) {
-    if (!mounted) return;
+    if (!mounted || !targetDegrees.isFinite) return;
 
     final targetRadians = targetDegrees * math.pi / 180;
 
     if (_visualAngle == null) {
-      setState(() {
-        _visualAngle = targetRadians;
-      });
+      setState(() => _visualAngle = targetRadians);
       return;
     }
 
     final currentDegrees = _visualAngle! * 180 / math.pi;
-
-    var difference =
-        (targetDegrees - currentDegrees) % 360;
-
-    if (difference > 180) {
-      difference -= 360;
-    }
-
-    if (difference < -180) {
-      difference += 360;
-    }
+    final difference = QiblaAngle.shortestDifference(
+      targetDegrees,
+      currentDegrees,
+    );
 
     setState(() {
-      _visualAngle =
-          _visualAngle! + difference * math.pi / 180;
+      _visualAngle = _visualAngle! + difference * math.pi / 180;
     });
   }
 
@@ -126,14 +117,6 @@ class _QiblaScreenState extends State<QiblaScreen> {
             }
           },
           builder: (context, state) {
-            if (state is QiblaLoading) {
-              return const Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.qiblaAccentGold,
-                ),
-              );
-            }
-
             if (state is QiblaSuccess) {
               return _QiblaContent(
                 state: state,
@@ -147,11 +130,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
               );
             }
 
-            return const Center(
-              child: CircularProgressIndicator(
-                color: AppColors.qiblaAccentGold,
-              ),
-            );
+            return const _QiblaWaiting();
           },
         ),
       ),
@@ -775,6 +754,27 @@ class _AlignmentIndicator
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _QiblaWaiting extends StatelessWidget {
+  const _QiblaWaiting();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircularProgressIndicator(color: AppColors.qiblaAccentGold),
+          SizedBox(height: 16),
+          Text(
+            'Waiting for location and compass…',
+            style: TextStyle(color: AppColors.darkSecondaryText),
           ),
         ],
       ),

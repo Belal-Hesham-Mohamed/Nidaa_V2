@@ -15,7 +15,7 @@ class CalculateQiblaBearingUseCase {
 
     final deltaLongitude = targetLongitude - userLongitude;
 
-    final y = sin(deltaLongitude);
+    final y = sin(deltaLongitude) * cos(targetLatitude);
 
     final x =
         cos(userLatitude) * sin(targetLatitude) -
@@ -36,5 +36,5 @@ class CalculateQiblaBearingUseCase {
     return (bearing + 360) % 360;
   }
 
-  
+
 }
