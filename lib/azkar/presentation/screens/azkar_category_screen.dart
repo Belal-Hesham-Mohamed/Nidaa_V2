@@ -49,7 +49,6 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
       (context, animation) => _RemovingDhikrCard(
         item: item,
         categoryIcon: widget.category.icon,
-        colors: _colors(context),
         animation: animation,
       ),
       duration: const Duration(milliseconds: 360),
@@ -355,13 +354,11 @@ class _RemovingDhikrCard extends StatelessWidget {
   const _RemovingDhikrCard({
     required this.item,
     required this.categoryIcon,
-    required this.colors,
     required this.animation,
   });
 
   final DhikrItem item;
   final IconData categoryIcon;
-  final _AzkarColors colors;
   final Animation<double> animation;
 
   @override
