@@ -12,31 +12,25 @@ class AzkarTimeResolver {
   }) {
     final current = now ?? DateTime.now();
     final fajrTime = _parse(fajr, current);
-    final sunriseTime = _parse(sunrise, current);
     final asrTime = _parse(asr, current);
-    final maghribTime = _parse(maghrib, current);
 
-    if ([fajrTime, sunriseTime, asrTime, maghribTime]
-        .any((time) => time == null)) {
+    // The Home card is a period recommendation, not a strict validity
+    // window. Keep showing one of the two daily collections until the next
+    // collection becomes active instead of showing an empty state between
+    // sunrise/maghrib and the next period.
+    if (fajrTime == null || asrTime == null) {
       return CurrentAzkarPeriod.none;
     }
 
-    final validFajr = fajrTime!;
-    final validSunrise = sunriseTime!;
-    final validAsr = asrTime!;
-    final validMaghrib = maghribTime!;
-
-    // Preferred morning window: after Fajr until sunrise.
-    if (_isBetween(current, validFajr, validSunrise)) {
-      return CurrentAzkarPeriod.morning;
-    }
-
-    // Preferred evening window: after Asr until Maghrib.
-    if (_isBetween(current, validAsr, validMaghrib)) {
+    if (current.isBefore(fajrTime)) {
       return CurrentAzkarPeriod.evening;
     }
 
-    return CurrentAzkarPeriod.none;
+    if (current.isBefore(asrTime)) {
+      return CurrentAzkarPeriod.morning;
+    }
+
+    return CurrentAzkarPeriod.evening;
   }
 
   DateTime? _parse(String? value, DateTime base) {
@@ -53,7 +47,4 @@ class AzkarTimeResolver {
 
     return DateTime(base.year, base.month, base.day, hour, minute);
   }
-
-  bool _isBetween(DateTime value, DateTime start, DateTime end) =>
-      !value.isBefore(start) && value.isBefore(end);
 }
