@@ -18,6 +18,7 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
   late final Map<String, int> _remaining;
   final Set<String> _removingIds = <String>{};
   int _completed = 0;
+  bool _showCompletion = false;
 
   @override
   void initState() {
@@ -55,6 +56,12 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
     );
 
     if (mounted) setState(() {});
+
+    if (_items.isEmpty) {
+      Future<void>.delayed(const Duration(milliseconds: 380), () {
+        if (mounted) setState(() => _showCompletion = true);
+      });
+    }
   }
 
   @override
@@ -62,7 +69,6 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
     final colors = _colors(context);
     final s = S.of(context);
     final total = widget.category.items.length;
-    final completedAll = _items.isEmpty;
 
     return Scaffold(
       backgroundColor: colors.background,
@@ -75,8 +81,11 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-          child: completedAll
-              ? _Completion(colors: colors, title: categoryTitle(s, widget.category.id))
+          child: _showCompletion
+              ? _Completion(
+                  colors: colors,
+                  title: categoryTitle(s, widget.category.id),
+                )
               : Column(
                   children: [
                     _ProgressHeader(
@@ -269,7 +278,11 @@ class DhikrCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.touch_app_outlined, color: colors.secondary, size: 16),
+                    Icon(
+                      Icons.touch_app_outlined,
+                      color: colors.secondary,
+                      size: 16,
+                    ),
                     const SizedBox(width: 6),
                     Flexible(
                       child: Text(
@@ -354,7 +367,10 @@ class _RemovingDhikrCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizeTransition(
-      sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeInOutCubic),
+      sizeFactor: CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeInOutCubic,
+      ),
       child: FadeTransition(
         opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
         child: Padding(
@@ -392,7 +408,9 @@ class _Completion extends StatelessWidget {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: AppColors.success.withValues(alpha: .12),
-                border: Border.all(color: AppColors.success.withValues(alpha: .28)),
+                border: Border.all(
+                  color: AppColors.success.withValues(alpha: .28),
+                ),
               ),
               child: const Icon(
                 Icons.check_rounded,
