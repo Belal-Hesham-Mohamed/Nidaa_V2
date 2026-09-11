@@ -57,53 +57,82 @@ class _AzkarHomeScreenState extends State<AzkarHomeScreen> {
             ? _fallbackPeriod()
             : resolvedPeriod;
 
-        return SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _AzkarHeader(colors: colors, title: s.azkarHeader),
-              const SizedBox(height: 16),
-              _CurrentCard(
-                period: period,
-                colors: colors,
-                onTap: () => _openCategory(context, period == CurrentAzkarPeriod.morning
-                    ? AzkarCategoryId.morning
-                    : AzkarCategoryId.evening),
-              ),
-              const SizedBox(height: 24),
-              _SectionHeader(title: s.azkarSectionTitle, colors: colors),
-              const SizedBox(height: 12),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final twoColumns = constraints.maxWidth >= 340;
+        return DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: _backgroundGradient(context),
+              stops: const [0.0, 0.48, 1.0],
+            ),
+          ),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _AzkarHeader(colors: colors, title: s.azkarHeader),
+                const SizedBox(height: 16),
+                _CurrentCard(
+                  period: period,
+                  colors: colors,
+                  onTap: () => _openCategory(
+                    context,
+                    period == CurrentAzkarPeriod.morning
+                        ? AzkarCategoryId.morning
+                        : AzkarCategoryId.evening,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                _SectionHeader(title: s.azkarSectionTitle, colors: colors),
+                const SizedBox(height: 12),
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    final twoColumns = constraints.maxWidth >= 340;
 
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: azkarCategories.length,
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: twoColumns ? 2 : 1,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      mainAxisExtent: twoColumns ? 138 : 108,
-                    ),
-                    itemBuilder: (context, index) {
-                      final category = azkarCategories[index];
-                      return _CategoryCard(
-                        category: category,
-                        colors: colors,
-                        onTap: () => _openCategory(context, category.id),
-                      );
-                    },
-                  );
-                },
-              ),
-            ],
+                    return GridView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: azkarCategories.length,
+                      gridDelegate:
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: twoColumns ? 2 : 1,
+                        crossAxisSpacing: 10,
+                        mainAxisSpacing: 10,
+                        mainAxisExtent: twoColumns ? 138 : 108,
+                      ),
+                      itemBuilder: (context, index) {
+                        final category = azkarCategories[index];
+                        return _CategoryCard(
+                          category: category,
+                          colors: colors,
+                          onTap: () => _openCategory(context, category.id),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         );
       },
     );
+  }
+
+  List<Color> _backgroundGradient(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return dark
+        ? const [
+            AppColors.qiblaBackgroundTop,
+            AppColors.qiblaBackgroundMiddle,
+            AppColors.qiblaBackgroundBottom,
+          ]
+        : const [
+            AppColors.qiblaLightBackgroundTop,
+            AppColors.qiblaLightBackgroundMiddle,
+            AppColors.qiblaLightBackgroundBottom,
+          ];
   }
 
   CurrentAzkarPeriod _fallbackPeriod() {
