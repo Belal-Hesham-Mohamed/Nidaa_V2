@@ -6,6 +6,7 @@ import 'package:geocoding/geocoding.dart' hide Location;
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
 import 'package:nidaa_v2/core/widgets/app_bottom_navigation_bar.dart';
+import 'package:nidaa_v2/azkar/presentation/screens/azkar_home_screen.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/domain/entities/location.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
@@ -94,6 +95,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   Widget _buildCurrentTab() {
     if (currentIndex == 0) return _buildPrayerTimesContent();
     if (currentIndex == 1) return const QiblaScreen();
+    if (currentIndex == 2) return AzkarHomeScreen(prayerTimesCubit: _prayerTimesCubit);
     if (currentIndex == 3) {
       return SettingsScreen(
         themeMode: widget.themeMode,

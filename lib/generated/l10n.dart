@@ -85,6 +85,146 @@ class S {
     return Intl.message('Settings', name: 'navSettings', desc: '', args: []);
   }
 
+  /// `Strengthen your day with the remembrance of Allah`
+  String get azkarHeader {
+    return Intl.message(
+      'Strengthen your day with the remembrance of Allah',
+      name: 'azkarHeader',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Azkar`
+  String get azkarSectionTitle {
+    return Intl.message('Azkar', name: 'azkarSectionTitle', desc: '', args: []);
+  }
+
+  /// `Time for Dhikr Now`
+  String get azkarNow {
+    return Intl.message(
+      'Time for Dhikr Now',
+      name: 'azkarNow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No specific dhikr time now`
+  String get azkarNoCurrentTime {
+    return Intl.message(
+      'No specific dhikr time now',
+      name: 'azkarNoCurrentTime',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Morning Azkar`
+  String get azkarMorning {
+    return Intl.message(
+      'Morning Azkar',
+      name: 'azkarMorning',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Evening Azkar`
+  String get azkarEvening {
+    return Intl.message(
+      'Evening Azkar',
+      name: 'azkarEvening',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Sleep Azkar`
+  String get azkarSleep {
+    return Intl.message('Sleep Azkar', name: 'azkarSleep', desc: '', args: []);
+  }
+
+  /// `Prayer Azkar`
+  String get azkarPrayer {
+    return Intl.message(
+      'Prayer Azkar',
+      name: 'azkarPrayer',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Duas`
+  String get azkarDuas {
+    return Intl.message('Duas', name: 'azkarDuas', desc: '', args: []);
+  }
+
+  /// `Toilet Etiquette Azkar`
+  String get azkarToilet {
+    return Intl.message(
+      'Toilet Etiquette Azkar',
+      name: 'azkarToilet',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Daily Azkar`
+  String get azkarDaily {
+    return Intl.message('Daily Azkar', name: 'azkarDaily', desc: '', args: []);
+  }
+
+  /// `After Fajr until sunrise`
+  String get azkarMorningWindow {
+    return Intl.message(
+      'After Fajr until sunrise',
+      name: 'azkarMorningWindow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `After Asr until Maghrib`
+  String get azkarEveningWindow {
+    return Intl.message(
+      'After Asr until Maghrib',
+      name: 'azkarEveningWindow',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `items`
+  String get azkarItems {
+    return Intl.message('items', name: 'azkarItems', desc: '', args: []);
+  }
+
+  /// `Progress`
+  String get progress {
+    return Intl.message('Progress', name: 'progress', desc: '', args: []);
+  }
+
+  /// `Source`
+  String get source {
+    return Intl.message('Source', name: 'source', desc: '', args: []);
+  }
+
+  /// `Completed`
+  String get completed {
+    return Intl.message('Completed', name: 'completed', desc: '', args: []);
+  }
+
+  /// `Tap to count`
+  String get tapToCount {
+    return Intl.message('Tap to count', name: 'tapToCount', desc: '', args: []);
+  }
+
+  /// `Next`
+  String get next {
+    return Intl.message('Next', name: 'next', desc: '', args: []);
+  }
+
   /// `Coming Soon`
   String get comingSoon {
     return Intl.message('Coming Soon', name: 'comingSoon', desc: '', args: []);

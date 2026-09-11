@@ -1,6 +1,5 @@
 part of 'qibla_cubit.dart';
 
-@immutable
 sealed class QiblaState {}
 
 final class QiblaInitial extends QiblaState {}
