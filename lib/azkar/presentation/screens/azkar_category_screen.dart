@@ -5,6 +5,7 @@ import 'package:nidaa_v2/generated/l10n.dart';
 
 class AzkarCategoryScreen extends StatefulWidget {
   const AzkarCategoryScreen({super.key, required this.category});
+
   final AzkarCategory category;
 
   @override
@@ -13,29 +14,25 @@ class AzkarCategoryScreen extends StatefulWidget {
 
 class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
   int _index = 0;
-  int _count = 0;
 
   DhikrItem get _item => widget.category.items[_index];
 
-  void _increment() {
-    if (_count >= _item.target) return;
-    setState(() => _count++);
+  void _moveNext() {
+    if (_index >= widget.category.items.length - 1) return;
+    setState(() => _index++);
   }
 
-  void _move(int delta) {
-    final next = _index + delta;
-    if (next < 0 || next >= widget.category.items.length) return;
-    setState(() {
-      _index = next;
-      _count = 0;
-    });
+  void _movePrevious() {
+    if (_index <= 0) return;
+    setState(() => _index--);
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = _colors(context);
     final s = S.of(context);
-    final completed = _count >= _item.target;
+    final isLast = _index == widget.category.items.length - 1;
+
     return Scaffold(
       backgroundColor: colors.background,
       appBar: AppBar(
@@ -58,104 +55,118 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
                     ),
                   ),
                   Text(
-                    '${s.progress}: ${_count}/${_item.target}',
-                    style: TextStyle(color: colors.secondary),
+                    '${_item.target}×',
+                    style: TextStyle(
+                      color: colors.accent,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ],
               ),
               const SizedBox(height: 10),
               LinearProgressIndicator(
-                value: _count / _item.target,
+                value: (_index + 1) / widget.category.items.length,
                 color: colors.accent,
                 backgroundColor: colors.surface,
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
               Expanded(
-                child: InkWell(
-                  onTap: _increment,
-                  borderRadius: BorderRadius.circular(24),
-                  child: Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: colors.surface,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(
-                        color: colors.accent.withValues(alpha: .18),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: _moveNext,
+                    borderRadius: BorderRadius.circular(24),
+                    child: Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
+                      decoration: BoxDecoration(
+                        color: colors.surface,
+                        borderRadius: BorderRadius.circular(24),
+                        border: Border.all(
+                          color: colors.accent.withValues(alpha: .18),
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          completed
-                              ? Icons.check_circle_outline
-                              : widget.category.icon,
-                          color: completed ? AppColors.success : colors.accent,
-                          size: 34,
-                        ),
-                        const SizedBox(height: 28),
-                        Text(
-                          _item.arabic,
-                          textAlign: TextAlign.center,
-                          textDirection: TextDirection.rtl,
-                          style: TextStyle(
-                            color: colors.primary,
-                            fontSize: 26,
-                            height: 1.9,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        if (_item.source != null) ...[
-                          const SizedBox(height: 24),
-                          Text(
-                            '${s.source}: ${_item.source}',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              color: colors.secondary,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ],
-                        const SizedBox(height: 28),
-                        Text(
-                          completed
-                              ? s.completed
-                              : '${_count} / ${_item.target}',
-                          style: TextStyle(
-                            color: completed
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            isLast
+                                ? Icons.check_circle_outline
+                                : widget.category.icon,
+                            color: isLast
                                 ? AppColors.success
                                 : colors.accent,
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+                            size: 34,
                           ),
-                        ),
-                        const SizedBox(height: 10),
-                        Text(
-                          s.tapToCount,
-                          style: TextStyle(color: colors.secondary),
-                        ),
-                      ],
+                          const SizedBox(height: 26),
+                          Text(
+                            _item.arabic,
+                            textAlign: TextAlign.center,
+                            textDirection: TextDirection.rtl,
+                            style: TextStyle(
+                              color: colors.primary,
+                              fontSize: 25,
+                              height: 1.9,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (_item.source != null) ...[
+                            const SizedBox(height: 24),
+                            Text(
+                              '${s.source}: ${_item.source}',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: colors.secondary,
+                                fontSize: 13,
+                                height: 1.5,
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: colors.accent.withValues(alpha: .10),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '${_item.target}×',
+                              style: TextStyle(
+                                color: colors.accent,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 18),
+                          Text(
+                            isLast ? s.completed : 'اضغط للذكر التالي',
+                            style: TextStyle(color: colors.secondary),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   IconButton(
-                    onPressed: _index > 0 ? () => _move(-1) : null,
+                    onPressed: _index > 0 ? _movePrevious : null,
                     icon: const Icon(Icons.arrow_back),
+                    color: colors.primary,
                   ),
-                  FilledButton.icon(
-                    onPressed:
-                        completed && _index < widget.category.items.length - 1
-                        ? () => _move(1)
-                        : null,
-                    icon: const Icon(Icons.arrow_forward),
-                    label: Text(s.next),
-                  ),
+                  const Spacer(),
+                  if (!isLast)
+                    FilledButton.icon(
+                      onPressed: _moveNext,
+                      icon: const Icon(Icons.arrow_forward),
+                      label: Text(s.next),
+                    ),
                 ],
               ),
             ],
@@ -204,5 +215,6 @@ class _AzkarColors {
     this.secondary,
     this.accent,
   );
+
   final Color background, surface, primary, secondary, accent;
 }
