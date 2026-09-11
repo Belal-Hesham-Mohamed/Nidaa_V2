@@ -43,15 +43,20 @@ class AppColors {
   static const qiblaBackgroundBottom = Color(0xFF06151F);
 
   // Light counterpart of the shared app background.
-  static const qiblaLightBackgroundTop = Color(0xFFEFF7FB);
-  static const qiblaLightBackgroundMiddle = Color(0xFFE4F0F6);
-  static const qiblaLightBackgroundBottom = Color(0xFFD7E7EF);
+  static const qiblaLightBackgroundTop = Color(0xFFF6F9FC);
+  static const qiblaLightBackgroundMiddle = Color(0xFFEAF2F8);
+  static const qiblaLightBackgroundBottom = Color(0xFFE1EDF3);
 
   static const qiblaCompassSurface = Color(0xFF08212C);
   static const qiblaCompassRing = Color(0xFF5BC0BE);
   static const qiblaCompassRingAligned = Color(0xFF69E38A);
   static const qiblaAccentGold = Color(0xFFF4D58D);
   static const qiblaGuide = Color(0xFF8AA8B2);
+
+  // Light Qibla palette aligned with the app light theme.
+  static const qiblaLightCompassSurface = Color(0xFFFFFFFF);
+  static const qiblaLightCompassRing = Color(0xFF3B82F6);
+  static const qiblaLightCompassRingAligned = Color(0xFF4CAF7D);
 
   // =========================
   // Common
