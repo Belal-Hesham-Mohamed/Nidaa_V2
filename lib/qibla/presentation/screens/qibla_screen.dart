@@ -34,8 +34,6 @@ class _QiblaScreenState extends State<QiblaScreen> {
   }
 
   Future<void> _initializeQibla() async {
-    // The Cubit is a lazy singleton. If Qibla was already initialized during
-    // this app session, keep the cached bearing and compass stream alive.
     if (_qiblaCubit.isInitialized) return;
 
     final result = await _getLocationUsecase();
@@ -76,8 +74,7 @@ class _QiblaScreenState extends State<QiblaScreen> {
 
   @override
   void dispose() {
-    // QiblaCubit is a lazy singleton and owns the compass subscription for
-    // the app session. It must not be closed when this screen is removed.
+    // QiblaCubit is a lazy singleton and owns the compass subscription.
     super.dispose();
   }
 
@@ -139,13 +136,22 @@ class _QiblaContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = QiblaStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isAligned = state.isAligned;
+
     final accentColor = isAligned
-        ? AppColors.qiblaCompassRingAligned
-        : AppColors.qiblaCompassRing;
+        ? (isDark
+            ? AppColors.qiblaCompassRingAligned
+            : AppColors.qiblaLightCompassRingAligned)
+        : (isDark
+            ? AppColors.qiblaCompassRing
+            : AppColors.qiblaLightCompassRing);
+
     final arrowColor = isAligned
-        ? AppColors.qiblaCompassRingAligned
-        : AppColors.qiblaAccentGold;
+        ? (isDark
+            ? AppColors.qiblaCompassRingAligned
+            : AppColors.qiblaLightCompassRingAligned)
+        : (isDark ? AppColors.qiblaAccentGold : AppColors.lightAccentBlue);
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -167,8 +173,10 @@ class _QiblaContent extends StatelessWidget {
                 Text(
                   strings.title,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.darkPrimaryText,
+                  style: TextStyle(
+                    color: isDark
+                        ? AppColors.darkPrimaryText
+                        : AppColors.lightPrimaryText,
                     fontSize: 30,
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.2,
@@ -178,8 +186,10 @@ class _QiblaContent extends StatelessWidget {
                 Text(
                   strings.instruction,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: AppColors.darkSecondaryText,
+                  style: TextStyle(
+                    color: isDark
+                        ? AppColors.darkSecondaryText
+                        : AppColors.lightSecondaryText,
                     fontSize: 14,
                   ),
                 ),
@@ -231,6 +241,11 @@ class _Compass extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final compassSurface = isDark
+        ? AppColors.qiblaCompassSurface
+        : AppColors.qiblaLightCompassSurface;
+
     return Semantics(
       label: QiblaStrings.of(context).title,
       child: SizedBox.square(
@@ -242,7 +257,7 @@ class _Compass extends StatelessWidget {
               duration: const Duration(milliseconds: 250),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: AppColors.qiblaCompassSurface,
+                color: compassSurface,
                 border: Border.all(color: accentColor, width: 3),
                 boxShadow: [
                   BoxShadow(
@@ -255,7 +270,7 @@ class _Compass extends StatelessWidget {
                 ],
               ),
             ),
-            const _CompassTicks(),
+            _CompassTicks(isDark: isDark),
             const Positioned(top: 18, child: _CardinalLabel('N')),
             const Positioned(right: 18, child: _CardinalLabel('E')),
             const Positioned(bottom: 18, child: _CardinalLabel('S')),
@@ -268,14 +283,12 @@ class _Compass extends StatelessWidget {
                 child: _QiblaArrow(color: arrowColor),
               )
             else
-              const CircularProgressIndicator(
-                color: AppColors.qiblaAccentGold,
-              ),
+              CircularProgressIndicator(color: arrowColor),
             Container(
               width: size * 0.055,
               height: size * 0.055,
               decoration: BoxDecoration(
-                color: AppColors.qiblaCompassSurface,
+                color: compassSurface,
                 shape: BoxShape.circle,
                 border: Border.all(color: arrowColor, width: 2),
                 boxShadow: [
@@ -294,18 +307,26 @@ class _Compass extends StatelessWidget {
                 height: 44,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: AppColors.qiblaCompassSurface,
+                  color: compassSurface,
                   border: Border.all(
                     color: isAligned
-                        ? AppColors.qiblaCompassRingAligned
-                        : AppColors.qiblaAccentGold,
+                        ? (isDark
+                            ? AppColors.qiblaCompassRingAligned
+                            : AppColors.qiblaLightCompassRingAligned)
+                        : (isDark
+                            ? AppColors.qiblaAccentGold
+                            : AppColors.lightAccentBlue),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
                       color: (isAligned
-                              ? AppColors.qiblaCompassRingAligned
-                              : AppColors.qiblaAccentGold)
+                              ? (isDark
+                                  ? AppColors.qiblaCompassRingAligned
+                                  : AppColors.qiblaLightCompassRingAligned)
+                              : (isDark
+                                  ? AppColors.qiblaAccentGold
+                                  : AppColors.lightAccentBlue))
                           .withValues(alpha: isAligned ? 0.45 : 0.18),
                       blurRadius: isAligned ? 18 : 8,
                     ),
@@ -322,20 +343,30 @@ class _Compass extends StatelessWidget {
 }
 
 class _CompassTicks extends StatelessWidget {
-  const _CompassTicks();
+  const _CompassTicks({required this.isDark});
+
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: CustomPaint(
         size: Size.infinite,
-        painter: _CompassTicksPainter(),
+        painter: _CompassTicksPainter(
+          color: isDark
+              ? AppColors.darkSecondaryText
+              : AppColors.lightSecondaryText,
+        ),
       ),
     );
   }
 }
 
 class _CompassTicksPainter extends CustomPainter {
+  const _CompassTicksPainter({required this.color});
+
+  final Color color;
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
@@ -348,9 +379,7 @@ class _CompassTicksPainter extends CustomPainter {
       final innerRadius = radius - (major ? 15 : 8);
 
       paint
-        ..color = major
-            ? AppColors.darkSecondaryText
-            : AppColors.darkSecondaryText.withValues(alpha: 0.3)
+        ..color = major ? color : color.withValues(alpha: 0.3)
         ..strokeWidth = major ? 2.2 : 1.1;
 
       canvas.drawLine(
@@ -368,7 +397,8 @@ class _CompassTicksPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CompassTicksPainter oldDelegate) =>
+      oldDelegate.color != color;
 }
 
 class _QiblaArrow extends StatelessWidget {
@@ -396,10 +426,13 @@ class _CardinalLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       label,
-      style: const TextStyle(
-        color: AppColors.darkPrimaryText,
+      style: TextStyle(
+        color: isDark
+            ? AppColors.darkPrimaryText
+            : AppColors.lightPrimaryText,
         fontSize: 18,
         fontWeight: FontWeight.w700,
       ),
@@ -412,23 +445,25 @@ class _KaabaMark extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.qiblaAccentGold : AppColors.lightAccentBlue;
+    final surface = isDark ? AppColors.darkBackground : AppColors.lightSurface;
+
     return Center(
       child: Container(
         width: 22,
         height: 22,
         decoration: BoxDecoration(
-          color: AppColors.darkBackground,
+          color: surface,
           borderRadius: BorderRadius.circular(3),
-          border: Border.all(color: AppColors.qiblaAccentGold, width: 1.5),
+          border: Border.all(color: accent, width: 1.5),
         ),
         child: Align(
           alignment: Alignment.topCenter,
           child: Container(
             height: 5,
             margin: const EdgeInsets.only(top: 4),
-            decoration: const BoxDecoration(
-              color: AppColors.qiblaAccentGold,
-            ),
+            decoration: BoxDecoration(color: accent),
           ),
         ),
       ),
@@ -444,15 +479,28 @@ class _DirectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = QiblaStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark
+        ? AppColors.darkSurface.withValues(alpha: 0.78)
+        : AppColors.lightSurface.withValues(alpha: 0.92);
+    final borderColor = isDark
+        ? AppColors.darkAccentTeal
+        : AppColors.lightAccentBlue;
+    final secondaryText = isDark
+        ? AppColors.darkSecondaryText
+        : AppColors.lightSecondaryText;
+    final iconAccent = isDark
+        ? AppColors.qiblaAccentGold
+        : AppColors.lightAccentBlue;
 
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: AppColors.darkSurface.withValues(alpha: 0.78),
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: AppColors.darkAccentTeal.withValues(alpha: 0.22),
+          color: borderColor.withValues(alpha: 0.22),
         ),
       ),
       child: Column(
@@ -466,13 +514,13 @@ class _DirectionCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Divider(
               height: 1,
-              color: AppColors.darkSecondaryText.withValues(alpha: 0.12),
+              color: secondaryText.withValues(alpha: 0.12),
             ),
           ),
           _DirectionRow(
-            icon: const Icon(
+            icon: Icon(
               Icons.explore_outlined,
-              color: AppColors.qiblaAccentGold,
+              color: iconAccent,
               size: 28,
             ),
             label: strings.yourHeading,
@@ -497,6 +545,14 @@ class _DirectionRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryText = isDark
+        ? AppColors.darkSecondaryText
+        : AppColors.lightSecondaryText;
+    final primaryText = isDark
+        ? AppColors.darkPrimaryText
+        : AppColors.lightPrimaryText;
+
     return Row(
       children: [
         SizedBox(width: 34, child: Center(child: icon)),
@@ -504,16 +560,16 @@ class _DirectionRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: const TextStyle(
-              color: AppColors.darkSecondaryText,
+            style: TextStyle(
+              color: secondaryText,
               fontSize: 14,
             ),
           ),
         ),
         Text(
           value,
-          style: const TextStyle(
-            color: AppColors.darkPrimaryText,
+          style: TextStyle(
+            color: primaryText,
             fontSize: 22,
             fontWeight: FontWeight.w700,
           ),
@@ -536,7 +592,9 @@ class _AlignmentIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final strings = QiblaStrings.of(context);
     final color = isAligned
-        ? AppColors.qiblaCompassRingAligned
+        ? (Theme.of(context).brightness == Brightness.dark
+            ? AppColors.qiblaCompassRingAligned
+            : AppColors.qiblaLightCompassRingAligned)
         : accentColor;
 
     return AnimatedContainer(
@@ -590,15 +648,21 @@ class _QiblaWaiting extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = QiblaStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accent = isDark ? AppColors.qiblaAccentGold : AppColors.lightAccentBlue;
+    final secondaryText = isDark
+        ? AppColors.darkSecondaryText
+        : AppColors.lightSecondaryText;
+
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const CircularProgressIndicator(color: AppColors.qiblaAccentGold),
+          CircularProgressIndicator(color: accent),
           const SizedBox(height: 16),
           Text(
             strings.waiting,
-            style: const TextStyle(color: AppColors.darkSecondaryText),
+            style: TextStyle(color: secondaryText),
           ),
         ],
       ),
@@ -614,22 +678,30 @@ class _QiblaError extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final strings = QiblaStrings.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryText = isDark
+        ? AppColors.darkSecondaryText
+        : AppColors.lightSecondaryText;
+    final primaryText = isDark
+        ? AppColors.darkPrimaryText
+        : AppColors.lightPrimaryText;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
+            Icon(
               Icons.explore_off_outlined,
               size: 48,
-              color: AppColors.darkSecondaryText,
+              color: secondaryText,
             ),
             const SizedBox(height: 14),
             Text(
               strings.unableToDetermine,
-              style: const TextStyle(
-                color: AppColors.darkPrimaryText,
+              style: TextStyle(
+                color: primaryText,
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
               ),
@@ -638,8 +710,8 @@ class _QiblaError extends StatelessWidget {
             const SizedBox(height: 6),
             Text(
               _messageFor(strings),
-              style: const TextStyle(
-                color: AppColors.darkSecondaryText,
+              style: TextStyle(
+                color: secondaryText,
                 fontSize: 14,
               ),
               textAlign: TextAlign.center,
