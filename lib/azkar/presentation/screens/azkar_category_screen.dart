@@ -5,186 +5,148 @@ import 'package:nidaa_v2/generated/l10n.dart';
 
 class AzkarCategoryScreen extends StatefulWidget {
   const AzkarCategoryScreen({super.key, required this.category});
-
   final AzkarCategory category;
-
   @override
   State<AzkarCategoryScreen> createState() => _AzkarCategoryScreenState();
 }
 
 class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
-  int _index = 0;
+  final _listKey = GlobalKey<AnimatedListState>();
+  late final List<DhikrItem> _items;
+  late final Map<String, int> _remaining;
+  int _completed = 0;
 
-  DhikrItem get _item => widget.category.items[_index];
-
-  void _moveNext() {
-    if (_index >= widget.category.items.length - 1) return;
-    setState(() => _index++);
+  @override
+  void initState() {
+    super.initState();
+    _items = List.of(widget.category.items);
+    _remaining = {for (final item in _items) item.id: item.target};
   }
 
-  void _movePrevious() {
-    if (_index <= 0) return;
-    setState(() => _index--);
+  void _count(DhikrItem item) {
+    final count = _remaining[item.id] ?? 0;
+    if (count == 0 || !_items.contains(item)) return;
+    if (count > 1) {
+      setState(() => _remaining[item.id] = count - 1);
+      return;
+    }
+    final index = _items.indexOf(item);
+    _listKey.currentState?.removeItem(index, (context, animation) => SizeTransition(
+      sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+      child: FadeTransition(opacity: animation, child: Padding(
+        padding: const EdgeInsets.only(bottom: 14),
+        child: DhikrCard(item: item, remaining: 0, enabled: false),
+      )),
+    ), duration: const Duration(milliseconds: 320));
+    setState(() { _items.removeAt(index); _remaining.remove(item.id); _completed++; });
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = _colors(context);
     final s = S.of(context);
-    final isLast = _index == widget.category.items.length - 1;
-
+    final total = widget.category.items.length;
     return Scaffold(
       backgroundColor: colors.background,
-      appBar: AppBar(
-        title: Text(categoryTitle(s, widget.category.id)),
-        backgroundColor: colors.background,
-        foregroundColor: colors.primary,
-        elevation: 0,
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${_index + 1} / ${widget.category.items.length}',
-                      style: TextStyle(color: colors.secondary),
-                    ),
-                  ),
-                  Text(
-                    '${_item.target}×',
-                    style: TextStyle(
-                      color: colors.accent,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
-              LinearProgressIndicator(
-                value: (_index + 1) / widget.category.items.length,
-                color: colors.accent,
-                backgroundColor: colors.surface,
-              ),
-              const SizedBox(height: 20),
-              Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: _moveNext,
-                    borderRadius: BorderRadius.circular(24),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.fromLTRB(22, 24, 22, 20),
-                      decoration: BoxDecoration(
-                        color: colors.surface,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(
-                          color: colors.accent.withValues(alpha: .18),
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            isLast
-                                ? Icons.check_circle_outline
-                                : widget.category.icon,
-                            color: isLast
-                                ? AppColors.success
-                                : colors.accent,
-                            size: 34,
-                          ),
-                          const SizedBox(height: 26),
-                          Text(
-                            _item.arabic,
-                            textAlign: TextAlign.center,
-                            textDirection: TextDirection.rtl,
-                            style: TextStyle(
-                              color: colors.primary,
-                              fontSize: 25,
-                              height: 1.9,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (_item.source != null) ...[
-                            const SizedBox(height: 24),
-                            Text(
-                              '${s.source}: ${_item.source}',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: colors.secondary,
-                                fontSize: 13,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 24),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 8,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.accent.withValues(alpha: .10),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Text(
-                              '${_item.target}×',
-                              style: TextStyle(
-                                color: colors.accent,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 18),
-                          Text(
-                            isLast ? s.completed : s.next,
-                            style: TextStyle(color: colors.secondary),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+      appBar: AppBar(title: Text(categoryTitle(s, widget.category.id)), backgroundColor: colors.background, foregroundColor: colors.primary, elevation: 0),
+      body: SafeArea(child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+        child: _items.isEmpty ? _Completion(colors: colors, title: categoryTitle(s, widget.category.id)) : Column(children: [
+          Row(children: [Expanded(child: Text('${s.progress}: $_completed / $total', style: TextStyle(color: colors.secondary))), Text('${_items.length} ${s.remaining}', style: TextStyle(color: colors.accent, fontWeight: FontWeight.w700))]),
+          const SizedBox(height: 8),
+          LinearProgressIndicator(value: _completed / total, color: colors.accent, backgroundColor: colors.surface),
+          const SizedBox(height: 14),
+          Expanded(child: AnimatedList(key: _listKey, initialItemCount: _items.length, padding: const EdgeInsets.only(bottom: 12), itemBuilder: (context, index, animation) {
+            final item = _items[index];
+            return SizeTransition(sizeFactor: CurvedAnimation(parent: animation, curve: Curves.easeOut), child: Padding(padding: const EdgeInsets.only(bottom: 14), child: DhikrCard(item: item, remaining: _remaining[item.id]!, categoryIcon: widget.category.icon, onTap: () => _count(item))));
+          })),
+        ]),
+      )),
+    );
+  }
+
+  _AzkarColors _colors(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return _AzkarColors(dark ? AppColors.darkBackground : AppColors.lightBackground, dark ? AppColors.darkSurface : AppColors.lightSurface, dark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText, dark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText, dark ? AppColors.darkAccentGold : AppColors.lightAccentBlue);
+  }
+}
+
+class DhikrCard extends StatelessWidget {
+  const DhikrCard({super.key, required this.item, required this.remaining, this.categoryIcon, this.onTap, this.enabled = true});
+  final DhikrItem item;
+  final int remaining;
+  final IconData? categoryIcon;
+  final VoidCallback? onTap;
+  final bool enabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = _cardColors(context);
+    final s = S.of(context);
+    final countBadge = Container(
+      key: ValueKey(remaining),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      decoration: BoxDecoration(color: colors.accent.withValues(alpha: .12), borderRadius: BorderRadius.circular(10)),
+      child: Text('$remaining×', style: TextStyle(color: colors.accent, fontWeight: FontWeight.w800, fontSize: 16)),
+    );
+    return Semantics(
+      button: enabled,
+      label: s.tapToCount,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? onTap : null,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
+            decoration: BoxDecoration(color: colors.surface, borderRadius: BorderRadius.circular(20), border: Border.all(color: colors.accent.withValues(alpha: .18))),
+            child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+              Icon(categoryIcon ?? Icons.wb_sunny_outlined, color: colors.accent, size: 24),
+              const SizedBox(height: 12),
+              Text(item.arabic, textDirection: TextDirection.rtl, textAlign: TextAlign.center, style: TextStyle(color: colors.primary, fontSize: 22, height: 1.8, fontWeight: FontWeight.w600)),
+              if (item.source != null) ...[
+                const SizedBox(height: 14),
+                Text('${s.source}: ${item.source}', textAlign: TextAlign.center, style: TextStyle(color: colors.secondary, fontSize: 12, height: 1.4)),
+              ],
+              const SizedBox(height: 14),
+              Align(
+                alignment: AlignmentDirectional.centerEnd,
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 160),
+                  child: countBadge,
                 ),
               ),
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: _index > 0 ? _movePrevious : null,
-                    icon: const Icon(Icons.arrow_back),
-                    color: colors.primary,
-                  ),
-                  const Spacer(),
-                  if (!isLast)
-                    FilledButton.icon(
-                      onPressed: _moveNext,
-                      icon: const Icon(Icons.arrow_forward),
-                      label: Text(s.next),
-                    ),
-                ],
-              ),
-            ],
+            ]),
           ),
         ),
       ),
     );
   }
 
-  _AzkarColors _colors(BuildContext context) {
+  _AzkarColors _cardColors(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return _AzkarColors(
-      dark ? AppColors.darkBackground : AppColors.lightBackground,
-      dark ? AppColors.darkSurface : AppColors.lightSurface,
-      dark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText,
-      dark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText,
-      dark ? AppColors.darkAccentGold : AppColors.lightAccentBlue,
-    );
+    return _AzkarColors(dark ? AppColors.darkBackground : AppColors.lightBackground, dark ? AppColors.darkSurface : AppColors.lightSurface, dark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText, dark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText, dark ? AppColors.darkAccentGold : AppColors.lightAccentBlue);
+  }
+}
+
+class _Completion extends StatelessWidget {
+  const _Completion({required this.colors, required this.title});
+  final _AzkarColors colors;
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = S.of(context);
+    return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+      Icon(Icons.check_circle_outline, color: AppColors.success, size: 58),
+      const SizedBox(height: 16),
+      Text(s.completed, style: TextStyle(color: colors.primary, fontSize: 22, fontWeight: FontWeight.w700)),
+      const SizedBox(height: 8),
+      Text(title, textAlign: TextAlign.center, style: TextStyle(color: colors.secondary)),
+      const SizedBox(height: 24),
+      OutlinedButton.icon(onPressed: () => Navigator.of(context).pop(), icon: const Icon(Icons.arrow_back), label: Text(s.navAzkar)),
+    ]));
   }
 }
 
