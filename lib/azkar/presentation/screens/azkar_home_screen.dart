@@ -45,7 +45,7 @@ class _AzkarHomeScreenState extends State<AzkarHomeScreen> {
     return BlocBuilder<PrayerTimesCubit, PrayerTimesState>(
       bloc: widget.prayerTimesCubit,
       builder: (context, state) {
-        final period = state is PrayerTimesSuccess
+        final resolvedPeriod = state is PrayerTimesSuccess
             ? _resolver.resolve(
                 fajr: state.prayerTimes.timings.fajr,
                 sunrise: state.prayerTimes.timings.sunrise,
@@ -53,6 +53,9 @@ class _AzkarHomeScreenState extends State<AzkarHomeScreen> {
                 maghrib: state.prayerTimes.timings.maghrib,
               )
             : CurrentAzkarPeriod.none;
+        final period = resolvedPeriod == CurrentAzkarPeriod.none
+            ? _fallbackPeriod()
+            : resolvedPeriod;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 28),
@@ -64,11 +67,9 @@ class _AzkarHomeScreenState extends State<AzkarHomeScreen> {
               _CurrentCard(
                 period: period,
                 colors: colors,
-                onTap: period == CurrentAzkarPeriod.morning
-                    ? () => _openCategory(context, AzkarCategoryId.morning)
-                    : period == CurrentAzkarPeriod.evening
-                        ? () => _openCategory(context, AzkarCategoryId.evening)
-                        : null,
+                onTap: () => _openCategory(context, period == CurrentAzkarPeriod.morning
+                    ? AzkarCategoryId.morning
+                    : AzkarCategoryId.evening),
               ),
               const SizedBox(height: 24),
               _SectionHeader(title: s.azkarSectionTitle, colors: colors),
@@ -103,6 +104,13 @@ class _AzkarHomeScreenState extends State<AzkarHomeScreen> {
         );
       },
     );
+  }
+
+  CurrentAzkarPeriod _fallbackPeriod() {
+    final hour = DateTime.now().hour;
+    return hour >= 4 && hour < 16
+        ? CurrentAzkarPeriod.morning
+        : CurrentAzkarPeriod.evening;
   }
 
   void _openCategory(BuildContext context, AzkarCategoryId id) {
@@ -225,17 +233,16 @@ class _CurrentCard extends StatelessWidget {
   const _CurrentCard({
     required this.period,
     required this.colors,
-    this.onTap,
+    required this.onTap,
   });
 
   final CurrentAzkarPeriod period;
   final _AzkarColors colors;
-  final VoidCallback? onTap;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final s = S.of(context);
-    final active = period != CurrentAzkarPeriod.none;
     final morning = period == CurrentAzkarPeriod.morning;
 
     final card = Container(
@@ -253,7 +260,7 @@ class _CurrentCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  active ? s.azkarNow : s.azkarNoCurrentTime,
+                  s.azkarNow,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -264,9 +271,7 @@ class _CurrentCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 7),
                 Text(
-                  active
-                      ? (morning ? s.azkarMorning : s.azkarEvening)
-                      : s.azkarNoCurrentTime,
+                  morning ? s.azkarMorning : s.azkarEvening,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
@@ -275,40 +280,20 @@ class _CurrentCard extends StatelessWidget {
                     fontWeight: FontWeight.w800,
                   ),
                 ),
-                if (active) ...[
-                  const SizedBox(height: 5),
-                  Text(
-                    morning ? s.azkarMorningWindow : s.azkarEveningWindow,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.secondary,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
               ],
             ),
           ),
           const SizedBox(width: 12),
           Icon(
-            morning
-                ? Icons.wb_sunny_outlined
-                : active
-                    ? Icons.nightlight_outlined
-                    : Icons.schedule_outlined,
+            morning ? Icons.wb_sunny_outlined : Icons.nightlight_outlined,
             color: colors.accent,
             size: 38,
           ),
-          if (onTap != null) ...[
-            const SizedBox(width: 4),
-            Icon(Icons.chevron_left, color: colors.secondary, size: 22),
-          ],
+          const SizedBox(width: 4),
+          Icon(Icons.chevron_left, color: colors.secondary, size: 22),
         ],
       ),
     );
-
-    if (onTap == null) return card;
 
     return Material(
       color: Colors.transparent,
