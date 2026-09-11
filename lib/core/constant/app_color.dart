@@ -34,12 +34,18 @@ class AppColors {
   static const lightAccentBlueLight = Color(0xFFE8F1FE);
 
   // =========================
-  // Qibla
+  // Shared App Background
   // =========================
 
+  // Dark gradient used by Qibla, Settings, and Azkar.
   static const qiblaBackgroundTop = Color(0xFF12343F);
   static const qiblaBackgroundMiddle = Color(0xFF0B2632);
   static const qiblaBackgroundBottom = Color(0xFF06151F);
+
+  // Light counterpart of the shared app background.
+  static const qiblaLightBackgroundTop = Color(0xFFEFF7FB);
+  static const qiblaLightBackgroundMiddle = Color(0xFFE4F0F6);
+  static const qiblaLightBackgroundBottom = Color(0xFFD7E7EF);
 
   static const qiblaCompassSurface = Color(0xFF08212C);
   static const qiblaCompassRing = Color(0xFF5BC0BE);
