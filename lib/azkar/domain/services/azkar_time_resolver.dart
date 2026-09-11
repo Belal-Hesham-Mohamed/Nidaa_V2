@@ -15,33 +15,42 @@ class AzkarTimeResolver {
     final sunriseTime = _parse(sunrise, current);
     final asrTime = _parse(asr, current);
     final maghribTime = _parse(maghrib, current);
-    if ([
-      fajrTime,
-      sunriseTime,
-      asrTime,
-      maghribTime,
-    ].any((time) => time == null)) {
+
+    if ([fajrTime, sunriseTime, asrTime, maghribTime]
+        .any((time) => time == null)) {
       return CurrentAzkarPeriod.none;
     }
-    final validFajr = fajrTime;
-    final validAsr = asrTime;
-    final validMaghrib = maghribTime;
-    if (!current.isBefore(validFajr!) && current.isBefore(validAsr!)) {
+
+    final validFajr = fajrTime!;
+    final validSunrise = sunriseTime!;
+    final validAsr = asrTime!;
+    final validMaghrib = maghribTime!;
+
+    // Preferred morning window: after Fajr until sunrise.
+    if (_isBetween(current, validFajr, validSunrise)) {
       return CurrentAzkarPeriod.morning;
     }
-    if (_isBetween(current, validAsr!, validMaghrib!)) {
+
+    // Preferred evening window: after Asr until Maghrib.
+    if (_isBetween(current, validAsr, validMaghrib)) {
       return CurrentAzkarPeriod.evening;
     }
+
     return CurrentAzkarPeriod.none;
   }
 
   DateTime? _parse(String? value, DateTime base) {
     if (value == null || value.trim().isEmpty) return null;
+
     final match = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(value.trim());
     if (match == null) return null;
+
     final hour = int.tryParse(match.group(1)!);
     final minute = int.tryParse(match.group(2)!);
-    if (hour == null || minute == null || hour > 23 || minute > 59) return null;
+    if (hour == null || minute == null || hour > 23 || minute > 59) {
+      return null;
+    }
+
     return DateTime(base.year, base.month, base.day, hour, minute);
   }
 
