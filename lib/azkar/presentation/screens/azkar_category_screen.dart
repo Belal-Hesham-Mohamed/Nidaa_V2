@@ -143,7 +143,7 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
                           ),
                           const SizedBox(height: 18),
                           Text(
-                            isLast ? s.completed : 'اضغط للذكر التالي',
+                            isLast ? s.completed : s.next,
                             style: TextStyle(color: colors.secondary),
                           ),
                         ],
