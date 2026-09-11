@@ -68,65 +68,97 @@ class _AzkarCategoryScreenState extends State<AzkarCategoryScreen> {
     final total = widget.category.items.length;
 
     return Scaffold(
-      backgroundColor: colors.background,
+      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
         title: Text(categoryTitle(s, widget.category.id)),
-        backgroundColor: colors.background,
+        backgroundColor: Colors.transparent,
         foregroundColor: colors.primary,
         elevation: 0,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-          child: _showCompletion
-              ? _Completion(
-                  colors: colors,
-                  title: categoryTitle(s, widget.category.id),
-                )
-              : Column(
-                  children: [
-                    _ProgressHeader(
-                      colors: colors,
-                      completed: _completed,
-                      total: total,
-                      remaining: _items.length,
-                    ),
-                    const SizedBox(height: 14),
-                    Expanded(
-                      child: AnimatedList(
-                        key: _listKey,
-                        initialItemCount: _items.length,
-                        padding: const EdgeInsets.only(bottom: 16),
-                        itemBuilder: (context, index, animation) {
-                          final item = _items[index];
-                          return SizeTransition(
-                            sizeFactor: CurvedAnimation(
-                              parent: animation,
-                              curve: Curves.easeOutCubic,
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 14),
-                              child: DhikrCard(
-                                item: item,
-                                remaining: _remaining[item.id] ?? 0,
-                                categoryIcon: widget.category.icon,
-                                onTap: () => _count(item),
-                              ),
-                            ),
-                          );
-                        },
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: _backgroundGradient(context),
+            stops: const [0.0, 0.48, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+            child: _showCompletion
+                ? _Completion(
+                    colors: colors,
+                    title: categoryTitle(s, widget.category.id),
+                  )
+                : Column(
+                    children: [
+                      _ProgressHeader(
+                        colors: colors,
+                        completed: _completed,
+                        total: total,
+                        remaining: _items.length,
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(height: 14),
+                      Expanded(
+                        child: AnimatedList(
+                          key: _listKey,
+                          initialItemCount: _items.length,
+                          padding: const EdgeInsets.only(bottom: 16),
+                          itemBuilder: (context, index, animation) {
+                            final item = _items[index];
+                            return SizeTransition(
+                              sizeFactor: CurvedAnimation(
+                                parent: animation,
+                                curve: Curves.easeOutCubic,
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.only(bottom: 14),
+                                child: DhikrCard(
+                                  item: item,
+                                  remaining: _remaining[item.id] ?? 0,
+                                  categoryIcon: widget.category.icon,
+                                  onTap: () => _count(item),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
   }
 
+  List<Color> _backgroundGradient(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    return dark
+        ? const [
+            AppColors.qiblaBackgroundTop,
+            AppColors.qiblaBackgroundMiddle,
+            AppColors.qiblaBackgroundBottom,
+          ]
+        : const [
+            AppColors.qiblaLightBackgroundTop,
+            AppColors.qiblaLightBackgroundMiddle,
+            AppColors.qiblaLightBackgroundBottom,
+          ];
+  }
+
   _AzkarColors _colors(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    return _AzkarColors(dark ? AppColors.darkBackground : AppColors.lightBackground, dark ? AppColors.darkSurface : AppColors.lightSurface, dark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText, dark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText, dark ? AppColors.darkAccentGold : AppColors.lightAccentBlue);
+    return _AzkarColors(
+      dark ? AppColors.darkBackground : AppColors.lightBackground,
+      dark ? AppColors.darkSurface : AppColors.lightSurface,
+      dark ? AppColors.darkPrimaryText : AppColors.lightPrimaryText,
+      dark ? AppColors.darkSecondaryText : AppColors.lightSecondaryText,
+      dark ? AppColors.darkAccentGold : AppColors.lightAccentBlue,
+    );
   }
 }
 
