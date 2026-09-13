@@ -16,7 +16,7 @@ class ManualLocationRepo implements ManualLocationRepoBase {
   Future<Either<Failure, ManualLocation>> getLocation({
     required String country,
     required String state,
-    required String city,
+    String? city,
   }) async {
     try {
       final newLocation = await datasource.getLocationData(

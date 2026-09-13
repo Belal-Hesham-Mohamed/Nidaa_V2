@@ -105,7 +105,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "الحصول على مواقيت الصلاة تلقائياً عبر GPS",
     ),
     "manualLocationValidationError": MessageLookupByLibrary.simpleMessage(
-      "يرجى اختيار الدولة والولاية والمدينة قبل الحفظ.",
+      "يرجى اختيار الدولة والولاية قبل الحفظ.",
     ),
     "navAzkar": MessageLookupByLibrary.simpleMessage("الأذكار"),
     "navPrayerTimes": MessageLookupByLibrary.simpleMessage("مواقيت الصلاة"),

@@ -7,7 +7,7 @@ abstract class ManualLocationRepoBase {
   Future<Either<Failure, ManualLocation>> getLocation({
     required String country,
     required String state,
-    required String city,
+    String? city,
   });
 
   Future<Either<Failure, ManualLocation>> getSavedLocation();

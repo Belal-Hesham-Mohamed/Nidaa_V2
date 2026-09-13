@@ -6,12 +6,12 @@ class ManualLocationDatasource {
   Future<ManualLocationModel> getLocationData({
     required String country,
     required String state,
-    required String city,
+    String? city,
   }) async {
     return ManualLocationModel(
       country: country.trim(),
       state: state.trim(),
-      city: city.trim(),
+      city: city?.trim().isNotEmpty == true ? city!.trim() : null,
     );
   }
 

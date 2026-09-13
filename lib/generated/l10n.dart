@@ -650,10 +650,10 @@ class S {
     );
   }
 
-  /// `Please select Country, State, and City before saving.`
+  /// `Please select Country and State before saving.`
   String get manualLocationValidationError {
     return Intl.message(
-      'Please select Country, State, and City before saving.',
+      'Please select Country and State before saving.',
       name: 'manualLocationValidationError',
       desc: '',
       args: [],

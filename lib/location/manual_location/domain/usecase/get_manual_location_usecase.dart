@@ -12,7 +12,7 @@ class GetManualLocationUsecase {
   Future<Either<Failure, ManualLocation>> call({
     required String country,
     required String state,
-    required String city,
+    String? city,
   }) async {
     return await _locationRepository.getLocation(
       country: country,

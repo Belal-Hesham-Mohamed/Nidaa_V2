@@ -83,7 +83,7 @@
     "manualLocationSelectCity": "اختر المدينة",
     "manualLocationFailedStates": "فشل تحميل الولايات",
     "manualLocationFailedCities": "فشل تحميل المدن",
-    "manualLocationValidationError": "يرجى اختيار الدولة والولاية والمدينة قبل الحفظ.",
+    "manualLocationValidationError": "يرجى اختيار الدولة والولاية قبل الحفظ.",
     "manualLocationSearchHint": "بحث...",
     "manualLocationNoResults": "لا توجد نتائج",
 

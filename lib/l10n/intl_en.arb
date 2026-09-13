@@ -144,7 +144,7 @@
     "@manualLocationFailedStates": {},
     "manualLocationFailedCities": "Failed to load cities",
     "@manualLocationFailedCities": {},
-    "manualLocationValidationError": "Please select Country, State, and City before saving.",
+    "manualLocationValidationError": "Please select Country and State before saving.",
     "@manualLocationValidationError": {},
     "manualLocationSearchHint": "Search...",
     "@manualLocationSearchHint": {},

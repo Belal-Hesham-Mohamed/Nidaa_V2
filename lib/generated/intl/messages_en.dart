@@ -109,7 +109,7 @@ class MessageLookup extends MessageLookupByLibrary {
       "Automatically fetch prayer times using GPS",
     ),
     "manualLocationValidationError": MessageLookupByLibrary.simpleMessage(
-      "Please select Country, State, and City before saving.",
+      "Please select Country and State before saving.",
     ),
     "navAzkar": MessageLookupByLibrary.simpleMessage("Azkar"),
     "navPrayerTimes": MessageLookupByLibrary.simpleMessage("Prayer Times"),
