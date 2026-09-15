@@ -1,12 +1,16 @@
-class PrayerTimesApiConstants {
-  static const String baseUrl = 'https://api.aladhan.com/v1';
+import 'package:nidaa_v2/core/config/app_config.dart';
+
+class ApiConstants {
+  /// Points at the centralized base URL. Request paths below are relative to
+  /// it and must not repeat the host.
+  static const String baseUrl = AppConfig.apiBaseUrl;
 
   static String timingsByCoordinates({
     required double latitude,
     required double longitude,
     required String date,
   }) {
-    return '$baseUrl/timings/$date'
+    return '/timings/$date'
         '?latitude=$latitude'
         '&longitude=$longitude'
         '&method=5';
@@ -18,7 +22,7 @@ class PrayerTimesApiConstants {
     required int month,
     required int year,
   }) {
-    return '$baseUrl/calendar/$year/$month'
+    return '/calendar/$year/$month'
         '?latitude=$latitude'
         '&longitude=$longitude'
         '&method=5';
@@ -30,7 +34,7 @@ class PrayerTimesApiConstants {
     required String country,
     required String date,
   }) {
-    return '$baseUrl/timingsByCity/$date'
+    return '/timingsByCity/$date'
         '?city=$city'
         '&state=$state'
         '&country=$country'
@@ -44,7 +48,7 @@ class PrayerTimesApiConstants {
     required int month,
     required int year,
   }) {
-    return '$baseUrl/calendarByCity/$year/$month'
+    return '/calendarByCity/$year/$month'
         '?city=$city'
         '&state=$state'
         '&country=$country'
@@ -56,7 +60,7 @@ class PrayerTimesApiConstants {
     required String country,
     required String date,
   }) {
-    return '$baseUrl/timingsByAddress/$date'
+    return '/timingsByAddress/$date'
         '?address=$state, $country'
         '&method=5';
   }
@@ -67,7 +71,7 @@ class PrayerTimesApiConstants {
     required int month,
     required int year,
   }) {
-    return '$baseUrl/calendarByAddress/$year/$month'
+    return '/calendarByAddress/$year/$month'
         '?address=$state, $country'
         '&method=5';
   }

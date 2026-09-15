@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
-import 'package:nidaa_v2/location/manual_location/presentation/screens/manual_location_screen.dart';
+import 'package:nidaa_v2/routes/app_routes.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({
@@ -25,13 +25,7 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen> {
   Future<void> _openLocationFlow() async {
-    await Navigator.of(context).push(
-      PageRouteBuilder<void>(
-        transitionDuration: Duration.zero,
-        reverseTransitionDuration: Duration.zero,
-        pageBuilder: (_, __, ___) => const ManualLocationScreen(),
-      ),
-    );
+    await Navigator.of(context).pushNamed(AppRoutes.manualLocation);
 
     if (mounted) {
       widget.onLocationChanged();

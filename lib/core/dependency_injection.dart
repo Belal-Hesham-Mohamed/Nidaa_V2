@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:hive/hive.dart';
 import 'package:dio/dio.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:nidaa_v2/core/network/app_dio.dart';
 import 'package:nidaa_v2/core/network/network_info.dart';
 import 'package:nidaa_v2/core/settings/settings_local_datasource.dart';
 import 'package:nidaa_v2/location/current_location/data/datasource/location_datasorce.dart';
@@ -132,8 +133,10 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
     () => PrayerTimesLocalDataSourceImpl(sl<Box>()),
   );
 
+  // Networking - a single configured Dio instance shared by all features.
+  sl.registerLazySingleton<Dio>(() => AppDio.create());
+
   // Prayer times datasource
-  sl.registerLazySingleton<Dio>(() => Dio());
   sl.registerLazySingleton<PrayerTimesRemoteDataSource>(
     () => PrayerTimesRemoteDataSourceImpl(sl<Dio>()),
   );

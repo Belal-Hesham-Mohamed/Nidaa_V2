@@ -57,7 +57,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     required String date,
   }) async {
     final response = await dio.get(
-      PrayerTimesApiConstants.timingsByCoordinates(
+      ApiConstants.timingsByCoordinates(
         latitude: latitude,
         longitude: longitude,
         date: date,
@@ -75,7 +75,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     required int year,
   }) async {
     final response = await dio.get(
-      PrayerTimesApiConstants.calendarByCoordinates(
+      ApiConstants.calendarByCoordinates(
         latitude: latitude,
         longitude: longitude,
         month: month,
@@ -94,7 +94,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     required String date,
   }) async {
     final response = await dio.get(
-      PrayerTimesApiConstants.timingsByCity(
+      ApiConstants.timingsByCity(
         city: city,
         state: state,
         country: country,
@@ -114,7 +114,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     required int year,
   }) async {
     final response = await dio.get(
-      PrayerTimesApiConstants.calendarByCity(
+      ApiConstants.calendarByCity(
         city: city,
         state: state,
         country: country,
@@ -133,7 +133,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     required String date,
   }) async {
     final response = await dio.get(
-      PrayerTimesApiConstants.timingsByAddress(
+      ApiConstants.timingsByAddress(
         state: state,
         country: country,
         date: date,
@@ -151,7 +151,7 @@ class PrayerTimesRemoteDataSourceImpl implements PrayerTimesRemoteDataSource {
     required int year,
   }) async {
     final response = await dio.get(
-      PrayerTimesApiConstants.calendarByAddress(
+      ApiConstants.calendarByAddress(
         state: state,
         country: country,
         month: month,

@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
+import 'package:dio/dio.dart';
 import 'package:intl/intl.dart';
 import 'package:nidaa_v2/core/error/failuer.dart';
+import 'package:nidaa_v2/core/network/dio_error_mapper.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_local_datasource.dart';
 import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_remote_datasource.dart';
 import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
@@ -12,6 +14,15 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
   final PrayerTimesLocalDataSource localDataSource;
 
   PrayerTimesRepo(this.remoteDataSource, this.localDataSource);
+
+  /// Builds a [Failure] for a failed operation, translating Dio errors
+  /// centrally so networking details do not leak past the data layer.
+  Failure _failure(Object error, String fallbackMessage) {
+    if (error is DioException) {
+      return DioErrorMapper.toFailure(error, fallbackMessage: fallbackMessage);
+    }
+    return Failure(fallbackMessage);
+  }
 
   List<DateTime> _getRequiredDates(DateTime today) {
     return List.generate(
@@ -141,8 +152,10 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
         longitude: longitude,
       );
       return Right(prayerTimes.map(_toEntity).toList());
-    } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+    } catch (error) {
+      return Left(
+        _failure(error, 'Something went wrong while getting prayer times'),
+      );
     }
   }
 
@@ -161,9 +174,12 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
       );
       await localDataSource.savePrayerTimes(newPrayerTimes);
       return Right(newPrayerTimes.map(_toEntity).toList());
-    } catch (_) {
+    } catch (error) {
       return Left(
-        Failure('Something went wrong while fetching new location prayer times'),
+        _failure(
+          error,
+          'Something went wrong while fetching new location prayer times',
+        ),
       );
     }
   }
@@ -242,9 +258,9 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
       }
 
       return Right(_toEntity(savedDay.first));
-    } catch (_) {
+    } catch (error) {
       return Left(
-        Failure('Something went wrong while getting saved prayer times'),
+        _failure(error, 'Something went wrong while getting saved prayer times'),
       );
     }
   }
@@ -262,8 +278,10 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
         date: date,
       );
       return Right(_toEntity(prayerTimes));
-    } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+    } catch (error) {
+      return Left(
+        _failure(error, 'Something went wrong while getting prayer times'),
+      );
     }
   }
 
@@ -283,8 +301,10 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
       );
       await localDataSource.savePrayerTimes(prayerTimes);
       return Right(prayerTimes.map(_toEntity).toList());
-    } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+    } catch (error) {
+      return Left(
+        _failure(error, 'Something went wrong while getting prayer times'),
+      );
     }
   }
 
@@ -303,8 +323,10 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
         date: date,
       );
       return Right(_toEntity(prayerTimes));
-    } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+    } catch (error) {
+      return Left(
+        _failure(error, 'Something went wrong while getting prayer times'),
+      );
     }
   }
 
@@ -326,8 +348,10 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
       );
       await localDataSource.savePrayerTimes(prayerTimes);
       return Right(prayerTimes.map(_toEntity).toList());
-    } catch (_) {
-      return Left(Failure('Something went wrong while getting prayer times'));
+    } catch (error) {
+      return Left(
+        _failure(error, 'Something went wrong while getting prayer times'),
+      );
     }
   }
 

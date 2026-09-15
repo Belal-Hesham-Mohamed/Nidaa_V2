@@ -9,6 +9,7 @@ import 'package:nidaa_v2/azkar/presentation/screens/azkar_category_screen.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
+import 'package:nidaa_v2/routes/app_routes.dart';
 
 class AzkarHomeScreen extends StatefulWidget {
   const AzkarHomeScreen({super.key, required this.prayerTimesCubit});
@@ -144,10 +145,9 @@ class _AzkarHomeScreenState extends State<AzkarHomeScreen> {
 
   void _openCategory(BuildContext context, AzkarCategoryId id) {
     final category = azkarCategories.firstWhere((item) => item.id == id);
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => AzkarCategoryScreen(category: category),
-      ),
+    Navigator.of(context).pushNamed(
+      AppRoutes.azkarCategory,
+      arguments: category,
     );
   }
 
