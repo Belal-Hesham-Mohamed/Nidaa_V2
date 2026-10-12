@@ -21,8 +21,8 @@ import 'package:nidaa_v2/location/manual_location/data/repositories/manual_locat
 import 'package:nidaa_v2/location/manual_location/domain/repositories/manual_location_repo_base.dart';
 import 'package:nidaa_v2/location/manual_location/domain/usecase/get_manual_location_usecase.dart';
 import 'package:nidaa_v2/location/manual_location/domain/usecase/get_saved_manual_location_usecase.dart';
-import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_local_datasource.dart';
-import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_remote_datasource.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:nidaa_v2/prayer_times/data/notifications/prayer_notification_service.dart';
 import 'package:nidaa_v2/prayer_times/data/repositories/prayer_times_repo.dart';
 import 'package:nidaa_v2/prayer_times/domain/repositories/prayer_times_repo_base.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.dart';
@@ -41,16 +41,10 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
     Hive.box<LocationModel>('locationBox'),
   );
 
-  sl.registerSingleton<Box<String>>(
-    Hive.box<String>('locationModeBox'),
-  );
+  sl.registerSingleton<Box<String>>(Hive.box<String>('locationModeBox'));
 
   sl.registerSingleton<Box<ManualLocationModel>>(
     Hive.box<ManualLocationModel>('manualLocationBox'),
-  );
-
-  sl.registerSingleton<Box>(
-    Hive.box('prayerTimesBox'),
   );
 
   // Internet connection
@@ -61,9 +55,7 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
   );
 
   // Location datasource
-  sl.registerLazySingleton<LocationDatasource>(
-    () => LocationDatasource(),
-  );
+  sl.registerLazySingleton<LocationDatasource>(() => LocationDatasource());
 
   // Local location datasource
   sl.registerLazySingleton<LocationLocalDataSource>(
@@ -128,24 +120,14 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
     () => GetSavedManualLocationUsecase(sl<ManualLocationRepoBase>()),
   );
 
-  // Local prayer times datasource
-  sl.registerLazySingleton<PrayerTimesLocalDataSource>(
-    () => PrayerTimesLocalDataSourceImpl(sl<Box>()),
-  );
-
   // Networking - a single configured Dio instance shared by all features.
   sl.registerLazySingleton<Dio>(() => AppDio.create());
 
-  // Prayer times datasource
-  sl.registerLazySingleton<PrayerTimesRemoteDataSource>(
-    () => PrayerTimesRemoteDataSourceImpl(sl<Dio>()),
-  );
-
   // Prayer times repository
-  sl.registerLazySingleton<PrayerTimesRepoBase>(
-    () => PrayerTimesRepo(
-      sl<PrayerTimesRemoteDataSource>(),
-      sl<PrayerTimesLocalDataSource>(),
+  sl.registerLazySingleton<PrayerTimesRepoBase>(() => PrayerTimesRepo());
+  sl.registerLazySingleton<PrayerNotificationService>(
+    () => PrayerNotificationService(
+      FlutterPrayerLocalNotificationsClient(FlutterLocalNotificationsPlugin()),
     ),
   );
 
@@ -165,8 +147,9 @@ void setupServiceLocator(SettingsLocalDataSource settingsLocalDataSource) {
       sl<GetLocationUsecase>(),
       sl<GetSavedCurrentLocationUsecase>(),
       sl<GetSavedManualLocationUsecase>(),
-      sl<GetPrayerTimesUsecase>(),
+      sl<GetManualLocationUsecase>(),
       sl<GetPrayerTimesWithCacheUsecase>(),
+      sl<PrayerNotificationService>(),
     ),
   );
 

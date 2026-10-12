@@ -2,8 +2,14 @@ class PrayerTimes {
   final Timings timings;
   final Date date;
   final Night night;
+  final String? timeZoneId;
 
-  PrayerTimes({required this.timings, required this.date, required this.night});
+  PrayerTimes({
+    required this.timings,
+    required this.date,
+    required this.night,
+    this.timeZoneId,
+  });
 }
 
 class Timings {

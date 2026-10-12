@@ -1,15 +1,9 @@
 /// Centralized application level configuration.
 ///
-/// This is the single source of truth for values that are shared across the
-/// app (API base URL, network timeouts, ...). Feature specific endpoint paths
-/// stay in [ApiConstants].
+/// This is the single source of truth for values shared by the networking
+/// infrastructure that remains available to app features.
 class AppConfig {
   const AppConfig._();
-
-  /// Base URL for the remote API. Every network request goes through the
-  /// Dio instance configured from this value, so it must never be repeated
-  /// inside data sources or repositories.
-  static const String apiBaseUrl = 'https://api.aladhan.com/v1';
 
   /// Timeouts applied centrally to the shared Dio instance.
   static const Duration connectTimeout = Duration(seconds: 15);

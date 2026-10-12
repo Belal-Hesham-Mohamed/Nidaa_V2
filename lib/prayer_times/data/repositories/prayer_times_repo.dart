@@ -1,267 +1,153 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
+import 'package:adhan_dart/adhan_dart.dart' as adhan;
+import 'package:geocoding/geocoding.dart';
+import 'package:hijri_core/hijri_core.dart' as hijri;
 import 'package:intl/intl.dart';
+import 'package:lat_lng_to_timezone/lat_lng_to_timezone.dart' as tzmap;
+import 'package:timezone/data/latest_all.dart' as tzdata;
+import 'package:timezone/timezone.dart' as tz;
 import 'package:nidaa_v2/core/error/failuer.dart';
-import 'package:nidaa_v2/core/network/dio_error_mapper.dart';
-import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_local_datasource.dart';
-import 'package:nidaa_v2/prayer_times/data/datasource/prayer_times_remote_datasource.dart';
-import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
 import 'package:nidaa_v2/prayer_times/domain/repositories/prayer_times_repo_base.dart';
 
+/// Data-layer adapter around adhan_dart. The domain only receives its existing
+/// PrayerTimes entities; no adhan_dart types cross this boundary.
 class PrayerTimesRepo implements PrayerTimesRepoBase {
-  final PrayerTimesRemoteDataSource remoteDataSource;
-  final PrayerTimesLocalDataSource localDataSource;
+  PrayerTimesRepo({PrayerCalculationSettings? settings})
+    : settings = settings ?? PrayerCalculationSettings.egypt();
 
-  PrayerTimesRepo(this.remoteDataSource, this.localDataSource);
+  final PrayerCalculationSettings settings;
+  bool _timeZonesInitialized = false;
 
-  /// Builds a [Failure] for a failed operation, translating Dio errors
-  /// centrally so networking details do not leak past the data layer.
-  Failure _failure(Object error, String fallbackMessage) {
-    if (error is DioException) {
-      return DioErrorMapper.toFailure(error, fallbackMessage: fallbackMessage);
+  tz.Location _locationTimeZone(double latitude, double longitude) {
+    if (!_timeZonesInitialized) {
+      tzdata.initializeTimeZones();
+      _timeZonesInitialized = true;
     }
-    return Failure(fallbackMessage);
+    final name = tzmap.latLngToTimezoneString(latitude, longitude);
+    return tz.getLocation(name);
   }
 
-  List<DateTime> _getRequiredDates(DateTime today) {
-    return List.generate(
-      15,
-      (index) => today.subtract(Duration(days: 7 - index)),
+  Future<PrayerTimes> _calculate({
+    required double latitude,
+    required double longitude,
+    required DateTime date,
+  }) async {
+    final zone = _locationTimeZone(latitude, longitude);
+    final localDate = tz.TZDateTime(zone, date.year, date.month, date.day);
+    final coordinates = adhan.Coordinates(latitude, longitude);
+    final parameters = settings.toAdhanParameters(coordinates);
+    final calculated = adhan.PrayerTimes(
+      coordinates: coordinates,
+      date: localDate,
+      calculationParameters: parameters,
+    );
+
+    String format(DateTime value) =>
+        DateFormat('HH:mm').format(tz.TZDateTime.from(value, zone));
+
+    final sunset = calculated.maghrib;
+    var nextFajr = calculated.fajr;
+    if (!nextFajr.isAfter(sunset)) {
+      nextFajr = nextFajr.add(const Duration(days: 1));
+    }
+    final nightLength = nextFajr.difference(sunset);
+    final firstThird = sunset.add(
+      Duration(seconds: nightLength.inSeconds ~/ 3),
+    );
+    final middle = sunset.add(Duration(seconds: nightLength.inSeconds ~/ 2));
+    final lastThird = sunset.add(
+      Duration(seconds: nightLength.inSeconds * 2 ~/ 3),
+    );
+    final hijriDate = hijri.toHijri(
+      DateTime.utc(date.year, date.month, date.day),
+    );
+    const arabicMonths = [
+      'محرم',
+      'صفر',
+      'ربيع الأول',
+      'ربيع الآخر',
+      'جمادى الأولى',
+      'جمادى الآخرة',
+      'رجب',
+      'شعبان',
+      'رمضان',
+      'شوال',
+      'ذو القعدة',
+      'ذو الحجة',
+    ];
+
+    return PrayerTimes(
+      timings: Timings(
+        fajr: format(calculated.fajr),
+        sunrise: format(calculated.sunrise),
+        dhuhr: format(calculated.dhuhr),
+        asr: format(calculated.asr),
+        maghrib: format(calculated.maghrib),
+        isha: format(calculated.isha),
+      ),
+      date: Date(
+        gregorian: DateFormat('dd-MM-yyyy').format(date),
+        hijriDay: hijriDate?.hd.toString() ?? '',
+        hijriMonthEn: hijriDate == null ? '' : hijri.hmLong[hijriDate.hm - 1],
+        hijriMonthAr: hijriDate == null ? '' : arabicMonths[hijriDate.hm - 1],
+        hijriYear: hijriDate?.hy.toString() ?? '',
+      ),
+      timeZoneId: zone.name,
+      night: Night(
+        midnight: format(middle),
+        firstThird: format(firstThird),
+        lastThird: format(lastThird),
+      ),
     );
   }
 
-  Set<String> _getRequiredMonths(DateTime today) {
-    final requiredDates = _getRequiredDates(today);
-    return requiredDates.map((date) => '${date.year}-${date.month}').toSet();
-  }
-
-  Set<String> _getCachedMonths(List<PrayerTimesModel> savedPrayerTimes) {
-    return savedPrayerTimes.map((prayerTime) {
-      final date = _parseGregorianDate(prayerTime.date.gregorian);
-      return '${date.year}-${date.month}';
-    }).toSet();
-  }
-
-  DateTime _parseGregorianDate(String value) {
-    final hyphenParts = value.split('-');
-    if (hyphenParts.length == 3) {
-      final day = int.tryParse(hyphenParts[0]);
-      final month = int.tryParse(hyphenParts[1]);
-      final year = int.tryParse(hyphenParts[2]);
+  DateTime _parseDate(String value) {
+    final parts = value.split('-');
+    if (parts.length == 3) {
+      final day = int.tryParse(parts[0]);
+      final month = int.tryParse(parts[1]);
+      final year = int.tryParse(parts[2]);
       if (day != null && month != null && year != null) {
-        return DateTime(year, month, day);
+        final date = DateTime(year, month, day);
+        if (date.year == year && date.month == month && date.day == day) {
+          return date;
+        }
       }
     }
-
-    final readableMatch = RegExp(r'^(\d{1,2})\s+([A-Za-z]+)\s+(\d{4})$')
-        .firstMatch(value);
-    if (readableMatch != null) {
-      final day = int.parse(readableMatch.group(1)!);
-      final monthStr = readableMatch.group(2)!.toLowerCase();
-      final year = int.parse(readableMatch.group(3)!);
-      final month = _monthFromAbbrev(monthStr);
-      if (month != null) return DateTime(year, month, day);
-    }
-
-    for (final pattern in ['dd MMM yyyy', 'd MMM yyyy']) {
+    for (final pattern in ['dd-MM-yyyy', 'dd MMM yyyy', 'd MMM yyyy']) {
       try {
         return DateFormat(pattern, 'en').parseStrict(value);
       } catch (_) {}
     }
-
-    throw FormatException('Invalid gregorian date: $value');
+    throw FormatException('Invalid prayer date: $value');
   }
 
-  int? _monthFromAbbrev(String abbrev) {
-    const months = {
-      'jan': 1,
-      'feb': 2,
-      'mar': 3,
-      'apr': 4,
-      'may': 5,
-      'jun': 6,
-      'jul': 7,
-      'aug': 8,
-      'sep': 9,
-      'oct': 10,
-      'nov': 11,
-      'dec': 12,
-    };
-    return months[abbrev];
-  }
-
-  Set<String> _getMissingMonths(
-    Set<String> requiredMonths,
-    Set<String> cachedMonths,
-  ) {
-    return requiredMonths.difference(cachedMonths);
-  }
-
-  Future<List<PrayerTimesModel>> _fetchMissingMonths(
-    Set<String> missingMonths, {
-    required double latitude,
-    required double longitude,
+  Future<adhan.Coordinates> _coordinatesForCity({
+    required String city,
+    required String state,
+    required String country,
   }) async {
-    final allPrayerTimes = <PrayerTimesModel>[];
-
-    for (final monthKey in missingMonths) {
-      final monthData = _parseMonthKey(monthKey);
-      final prayerTimes = await remoteDataSource.getCalendarByCoordinates(
-        latitude: latitude,
-        longitude: longitude,
-        month: monthData['month']!,
-        year: monthData['year']!,
-      );
-      allPrayerTimes.addAll(prayerTimes);
+    final address = [
+      city,
+      state,
+      country,
+    ].where((part) => part.trim().isNotEmpty).join(', ');
+    final matches = await Geocoding().locationFromAddress(address);
+    if (matches.isEmpty) {
+      throw StateError('No coordinates found for $address');
     }
-
-    return allPrayerTimes;
+    final result = matches.first;
+    return adhan.Coordinates(result.latitude, result.longitude);
   }
 
-  List<PrayerTimesModel> _mergePrayerTimes(
-    List<PrayerTimesModel> cachedPrayerTimes,
-    List<PrayerTimesModel> newPrayerTimes,
-  ) {
-    final merged = <PrayerTimesModel>[...cachedPrayerTimes, ...newPrayerTimes];
-    final uniquePrayerTimes = <String, PrayerTimesModel>{};
-
-    for (final prayerTime in merged) {
-      uniquePrayerTimes[prayerTime.date.gregorian] = prayerTime;
-    }
-
-    return uniquePrayerTimes.values.toList();
-  }
-
-
-  Map<String, int> _parseMonthKey(String monthKey) {
-    final parts = monthKey.split('-');
-    return {'year': int.parse(parts[0]), 'month': int.parse(parts[1])};
-  }
-
-  @override
-  Future<Either<Failure, List<PrayerTimes>>> getPrayerTimesWithCacheByCoordinates({
-    required DateTime today,
-    required double latitude,
-    required double longitude,
-  }) async {
+  Future<Either<Failure, PrayerTimes>> _safe(
+    Future<PrayerTimes> Function() action,
+  ) async {
     try {
-      final prayerTimes = await _getPrayerTimesWithCacheByCoordinates(
-        today: today,
-        latitude: latitude,
-        longitude: longitude,
-      );
-      return Right(prayerTimes.map(_toEntity).toList());
+      return Right(await action());
     } catch (error) {
-      return Left(
-        _failure(error, 'Something went wrong while getting prayer times'),
-      );
-    }
-  }
-
-  @override
-  Future<Either<Failure, List<PrayerTimes>>> replaceCacheByCoordinates({
-    required DateTime today,
-    required double latitude,
-    required double longitude,
-  }) async {
-    try {
-      final requiredMonths = _getRequiredMonths(today);
-      final newPrayerTimes = await _fetchMissingMonths(
-        requiredMonths,
-        latitude: latitude,
-        longitude: longitude,
-      );
-      await localDataSource.savePrayerTimes(newPrayerTimes);
-      return Right(newPrayerTimes.map(_toEntity).toList());
-    } catch (error) {
-      return Left(
-        _failure(
-          error,
-          'Something went wrong while fetching new location prayer times',
-        ),
-      );
-    }
-  }
-
-  Future<List<PrayerTimesModel>> _getPrayerTimesWithCacheByCoordinates({
-    required DateTime today,
-    required double latitude,
-    required double longitude,
-  }) async {
-    final cachedPrayerTimes = await localDataSource.getSavedPrayerTimes() ?? [];
-    final requiredMonths = _getRequiredMonths(today);
-    final cachedMonths = _getCachedMonths(cachedPrayerTimes);
-    final missingMonths = _getMissingMonths(requiredMonths, cachedMonths);
-
-    List<PrayerTimesModel> mergedPrayerTimes = cachedPrayerTimes;
-
-    if (missingMonths.isNotEmpty) {
-      final newPrayerTimes = await _fetchMissingMonths(
-        missingMonths,
-        latitude: latitude,
-        longitude: longitude,
-      );
-
-      mergedPrayerTimes = _mergePrayerTimes(cachedPrayerTimes, newPrayerTimes);
-      await localDataSource.savePrayerTimes(mergedPrayerTimes);
-    }
-
-    final todayKey =
-        '${today.day.toString().padLeft(2, '0')}-${today.month.toString().padLeft(2, '0')}-${today.year}';
-    final todayIndex = mergedPrayerTimes.indexWhere(
-      (pt) => pt.date.gregorian.trim() == todayKey,
-    );
-
-    if (todayIndex == -1 ||
-        !_hasCompleteHijriData(mergedPrayerTimes[todayIndex].date)) {
-      final todayTimings = await remoteDataSource.getTimingsByCoordinates(
-        latitude: latitude,
-        longitude: longitude,
-        date: todayKey,
-      );
-
-      mergedPrayerTimes = _mergePrayerTimes(
-        mergedPrayerTimes,
-        [todayTimings],
-      );
-
-      await localDataSource.savePrayerTimes(mergedPrayerTimes);
-    }
-
-    return mergedPrayerTimes;
-  }
-
-  bool _hasCompleteHijriData(DateModel date) {
-    return date.hijriDate?.trim().isNotEmpty == true &&
-        date.hijriMonthEn?.trim().isNotEmpty == true &&
-        date.hijriMonthAr?.trim().isNotEmpty == true &&
-        date.hijriYear?.trim().isNotEmpty == true;
-  }
-
-  @override
-  Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
-    required String date,
-  }) async {
-    try {
-      final savedPrayerTimes = await localDataSource.getSavedPrayerTimes();
-      if (savedPrayerTimes == null || savedPrayerTimes.isEmpty) {
-        return Left(Failure('No saved prayer times'));
-      }
-
-      final savedDay = savedPrayerTimes.where(
-        (prayerTime) => prayerTime.date.gregorian == date,
-      );
-
-      if (savedDay.isEmpty) {
-        return Left(Failure('No saved prayer times for this date'));
-      }
-
-      return Right(_toEntity(savedDay.first));
-    } catch (error) {
-      return Left(
-        _failure(error, 'Something went wrong while getting saved prayer times'),
-      );
+      return Left(Failure('Unable to calculate prayer times: $error'));
     }
   }
 
@@ -270,20 +156,13 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     required double latitude,
     required double longitude,
     required String date,
-  }) async {
-    try {
-      final prayerTimes = await remoteDataSource.getTimingsByCoordinates(
-        latitude: latitude,
-        longitude: longitude,
-        date: date,
-      );
-      return Right(_toEntity(prayerTimes));
-    } catch (error) {
-      return Left(
-        _failure(error, 'Something went wrong while getting prayer times'),
-      );
-    }
-  }
+  }) => _safe(
+    () => _calculate(
+      latitude: latitude,
+      longitude: longitude,
+      date: _parseDate(date),
+    ),
+  );
 
   @override
   Future<Either<Failure, List<PrayerTimes>>> getCalendarByCoordinates({
@@ -293,20 +172,65 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     required int year,
   }) async {
     try {
-      final prayerTimes = await remoteDataSource.getCalendarByCoordinates(
-        latitude: latitude,
-        longitude: longitude,
-        month: month,
-        year: year,
+      final days = DateTime(year, month + 1, 0).day;
+      return Right(
+        await Future.wait(
+          List.generate(
+            days,
+            (day) => _calculate(
+              latitude: latitude,
+              longitude: longitude,
+              date: DateTime(year, month, day + 1),
+            ),
+          ),
+        ),
       );
-      await localDataSource.savePrayerTimes(prayerTimes);
-      return Right(prayerTimes.map(_toEntity).toList());
     } catch (error) {
-      return Left(
-        _failure(error, 'Something went wrong while getting prayer times'),
-      );
+      return Left(Failure('Unable to calculate prayer calendar: $error'));
     }
   }
+
+  @override
+  Future<Either<Failure, List<PrayerTimes>>>
+  getPrayerTimesWithCacheByCoordinates({
+    required DateTime today,
+    required double latitude,
+    required double longitude,
+  }) async {
+    try {
+      final locationZone = _locationTimeZone(latitude, longitude);
+      final localToday = tz.TZDateTime.now(locationZone);
+      return Right(
+        await Future.wait(
+          List.generate(
+            15,
+            (index) => _calculate(
+              latitude: latitude,
+              longitude: longitude,
+              date: DateTime(
+                localToday.year,
+                localToday.month,
+                localToday.day,
+              ).add(Duration(days: index - 7)),
+            ),
+          ),
+        ),
+      );
+    } catch (error) {
+      return Left(Failure('Unable to calculate prayer times: $error'));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<PrayerTimes>>> replaceCacheByCoordinates({
+    required DateTime today,
+    required double latitude,
+    required double longitude,
+  }) => getPrayerTimesWithCacheByCoordinates(
+    today: today,
+    latitude: latitude,
+    longitude: longitude,
+  );
 
   @override
   Future<Either<Failure, PrayerTimes>> getTimingsByCity({
@@ -314,21 +238,18 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     required String state,
     required String country,
     required String date,
-  }) async {
-    try {
-      final prayerTimes = await _getTimingsByManualLocation(
-        city: city,
-        state: state,
-        country: country,
-        date: date,
-      );
-      return Right(_toEntity(prayerTimes));
-    } catch (error) {
-      return Left(
-        _failure(error, 'Something went wrong while getting prayer times'),
-      );
-    }
-  }
+  }) async => _safe(() async {
+    final coordinates = await _coordinatesForCity(
+      city: city,
+      state: state,
+      country: country,
+    );
+    return _calculate(
+      latitude: coordinates.latitude,
+      longitude: coordinates.longitude,
+      date: _parseDate(date),
+    );
+  });
 
   @override
   Future<Either<Failure, List<PrayerTimes>>> getCalendarByCity({
@@ -339,97 +260,56 @@ class PrayerTimesRepo implements PrayerTimesRepoBase {
     required int year,
   }) async {
     try {
-      final prayerTimes = await _getCalendarByManualLocation(
+      final coordinates = await _coordinatesForCity(
         city: city,
         state: state,
         country: country,
-        month: month,
-        year: year,
       );
-      await localDataSource.savePrayerTimes(prayerTimes);
-      return Right(prayerTimes.map(_toEntity).toList());
+      final days = DateTime(year, month + 1, 0).day;
+      return Right(
+        await Future.wait(
+          List.generate(
+            days,
+            (day) => _calculate(
+              latitude: coordinates.latitude,
+              longitude: coordinates.longitude,
+              date: DateTime(year, month, day + 1),
+            ),
+          ),
+        ),
+      );
     } catch (error) {
-      return Left(
-        _failure(error, 'Something went wrong while getting prayer times'),
-      );
+      return Left(Failure('Unable to calculate prayer calendar: $error'));
     }
   }
 
-  PrayerTimes _toEntity(PrayerTimesModel model) {
-    final hijriDate = model.date.hijriDate?.trim() ?? '';
-    final hijriDateParts = hijriDate.split('-');
-    final hijriDay = hijriDateParts.length == 3
-        ? hijriDateParts[0]
-        : '';
-
-    return PrayerTimes(
-      timings: Timings(
-        fajr: model.timings.fajr,
-        sunrise: model.timings.sunrise,
-        dhuhr: model.timings.dhuhr,
-        asr: model.timings.asr,
-        maghrib: model.timings.maghrib,
-        isha: model.timings.isha,
-      ),
-      date: Date(
-        gregorian: model.date.gregorian,
-        hijriDay: hijriDay,
-        hijriMonthEn: model.date.hijriMonthEn?.trim() ?? '',
-        hijriMonthAr: model.date.hijriMonthAr?.trim() ?? '',
-        hijriYear: model.date.hijriYear?.trim() ?? '',
-      ),
-      night: Night(
-        midnight: model.night.midnight,
-        firstThird: model.night.firstThird,
-        lastThird: model.night.lastThird,
-      ),
-    );
-  }
-
-  Future<PrayerTimesModel> _getTimingsByManualLocation({
-    required String city,
-    required String state,
-    required String country,
+  @override
+  Future<Either<Failure, PrayerTimes>> getSavedPrayerTimes({
     required String date,
-  }) async {
-    try {
-      return await remoteDataSource.getTimingsByCity(
-        city: city,
-        state: state,
-        country: country,
-        date: date,
-      );
-    } catch (_) {
-      return remoteDataSource.getTimingsByAddress(
-        state: state,
-        country: country,
-        date: date,
-      );
-    }
-  }
+  }) async =>
+      Left(Failure('Prayer times are calculated locally and are not cached.'));
+}
 
-  Future<List<PrayerTimesModel>> _getCalendarByManualLocation({
-    required String city,
-    required String state,
-    required String country,
-    required int month,
-    required int year,
-  }) async {
-    try {
-      return await remoteDataSource.getCalendarByCity(
-        city: city,
-        state: state,
-        country: country,
-        month: month,
-        year: year,
-      );
-    } catch (_) {
-      return remoteDataSource.getCalendarByAddress(
-        state: state,
-        country: country,
-        month: month,
-        year: year,
-      );
-    }
-  }
+/// Preferences are persisted/configurable independently of the repository,
+/// enabling later country-based defaults and user overrides.
+class PrayerCalculationSettings {
+  const PrayerCalculationSettings({
+    required this.madhab,
+    required this.highLatitudeRule,
+  });
+
+  factory PrayerCalculationSettings.egypt() => const PrayerCalculationSettings(
+    madhab: adhan.Madhab.shafi,
+    highLatitudeRule: null,
+  );
+
+  final adhan.Madhab madhab;
+  final adhan.HighLatitudeRule? highLatitudeRule;
+
+  adhan.CalculationParameters toAdhanParameters(
+    adhan.Coordinates coordinates,
+  ) => adhan.CalculationMethodParameters.egyptian()
+    ..madhab = madhab
+    ..highLatitudeRule =
+        highLatitudeRule ?? adhan.HighLatitudeRule.recommended(coordinates);
 }

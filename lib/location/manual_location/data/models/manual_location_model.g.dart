@@ -20,19 +20,25 @@ class ManualLocationModelAdapter extends TypeAdapter<ManualLocationModel> {
       country: fields[0] as String?,
       state: fields[2] as String?,
       city: fields[1] as String?,
+      latitude: fields[3] as double?,
+      longitude: fields[4] as double?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ManualLocationModel obj) {
     writer
-      ..writeByte(3)
+      ..writeByte(5)
       ..writeByte(0)
       ..write(obj.country)
       ..writeByte(1)
       ..write(obj.city)
       ..writeByte(2)
-      ..write(obj.state);
+      ..write(obj.state)
+      ..writeByte(3)
+      ..write(obj.latitude)
+      ..writeByte(4)
+      ..write(obj.longitude);
   }
 
   @override

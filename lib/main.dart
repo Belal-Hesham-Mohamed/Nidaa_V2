@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:nidaa_v2/prayer_times/data/notifications/prayer_notification_service.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:nidaa_v2/core/constant/app_color.dart';
 import 'package:nidaa_v2/core/dependency_injection.dart';
@@ -8,7 +9,6 @@ import 'package:nidaa_v2/core/settings/settings_local_datasource.dart';
 import 'package:nidaa_v2/generated/l10n.dart';
 import 'package:nidaa_v2/location/current_location/data/models/location_model.dart';
 import 'package:nidaa_v2/location/manual_location/data/models/manual_location_model.dart';
-import 'package:nidaa_v2/prayer_times/data/models/prayer_times_model.dart';
 import 'package:nidaa_v2/routes/app_router.dart';
 import 'package:nidaa_v2/routes/app_routes.dart';
 
@@ -24,18 +24,14 @@ void main() async {
 
   Hive.registerAdapter(LocationModelAdapter());
   Hive.registerAdapter(ManualLocationModelAdapter());
-  Hive.registerAdapter(PrayerTimesModelAdapter());
-  Hive.registerAdapter(TimingsModelAdapter());
-  Hive.registerAdapter(DateModelAdapter());
-  Hive.registerAdapter(NightModelAdapter());
 
   await Hive.openBox<LocationModel>('locationBox');
   await Hive.openBox<String>('locationModeBox');
   await Hive.openBox<ManualLocationModel>('manualLocationBox');
-  await Hive.openBox('prayerTimesBox');
 
   final settingsLocalDataSource = await SettingsLocalDataSource.init();
   setupServiceLocator(settingsLocalDataSource);
+  await sl<PrayerNotificationService>().requestPermissions();
 
   runApp(MyApp(settingsLocalDataSource: settingsLocalDataSource));
 }

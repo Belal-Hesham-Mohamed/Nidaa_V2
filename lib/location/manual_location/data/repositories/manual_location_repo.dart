@@ -65,6 +65,9 @@ class ManualLocationRepo implements ManualLocationRepoBase {
   }
 
   bool _isSameLocation(ManualLocation oldLocation, ManualLocation newLocation) {
+    if (oldLocation.latitude == null || oldLocation.longitude == null) {
+      return false;
+    }
     final oldCountry = _normalize(oldLocation.country);
     final newCountry = _normalize(newLocation.country);
 

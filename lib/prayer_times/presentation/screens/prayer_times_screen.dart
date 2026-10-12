@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -29,7 +29,7 @@ class PrayerTimesScreen extends StatefulWidget {
   State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
 }
 
-class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
+class _PrayerTimesScreenState extends State<PrayerTimesScreen> with WidgetsBindingObserver {
   int currentIndex = 0;
   late final PrayerTimesCubit _prayerTimesCubit;
   Timer? _timer;
@@ -37,6 +37,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _prayerTimesCubit = sl<PrayerTimesCubit>();
     _prayerTimesCubit.getPrayerTimes();
     _timer = Timer.periodic(const Duration(seconds: 1), (_) {
@@ -46,9 +47,17 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _timer?.cancel();
     _prayerTimesCubit.close();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _prayerTimesCubit.getPrayerTimes();
+    }
   }
 
   void _refreshPrayerTimesAfterLocationChange() => _prayerTimesCubit.getPrayerTimes();

@@ -7,9 +7,10 @@ import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_m
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_location_usecase.dart';
 import 'package:nidaa_v2/location/current_location/domain/usecase/get_saved_current_location_usecase.dart';
 import 'package:nidaa_v2/location/manual_location/domain/entities/manual_location.dart';
+import 'package:nidaa_v2/location/manual_location/domain/entities/manual_location_options.dart';
+import 'package:nidaa_v2/location/manual_location/domain/usecase/get_manual_location_usecase.dart';
 import 'package:nidaa_v2/location/manual_location/domain/usecase/get_saved_manual_location_usecase.dart';
 import 'package:nidaa_v2/prayer_times/domain/entities/prayer_times.dart';
-import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_usecase.dart';
 import 'package:nidaa_v2/prayer_times/domain/usecase/get_prayer_times_with_cache_usecase.dart';
 import 'package:nidaa_v2/prayer_times/presentation/cubit/prayer_times_cubit.dart';
 
@@ -27,6 +28,8 @@ class DummyManualLocation extends ManualLocation {
     super.country,
     super.state,
     super.city,
+    super.latitude,
+    super.longitude,
   });
 }
 
@@ -39,122 +42,74 @@ class FakeGetLocationModeUsecase implements GetLocationModeUsecase {
 class FakeGetLocationUsecase implements GetLocationUsecase {
   Location? locationToReturn;
   bool wasCalled = false;
-
   @override
   Future<Either<Failure, Location>> call() async {
     wasCalled = true;
-    if (locationToReturn != null) {
-      return Right(locationToReturn!);
-    }
-    return Left(Failure('GPS Error'));
+    return locationToReturn == null
+        ? Left(Failure('GPS Error'))
+        : Right(locationToReturn!);
   }
 }
 
-class FakeGetSavedCurrentLocationUsecase implements GetSavedCurrentLocationUsecase {
+class FakeGetSavedCurrentLocationUsecase
+    implements GetSavedCurrentLocationUsecase {
   Location? savedLocation;
   @override
-  Future<Either<Failure, Location>> call() async {
-    if (savedLocation != null) return Right(savedLocation!);
-    return Left(Failure('No saved location'));
-  }
+  Future<Either<Failure, Location>> call() async => savedLocation == null
+      ? Left(Failure('No saved location'))
+      : Right(savedLocation!);
 }
 
-class FakeGetSavedManualLocationUsecase implements GetSavedManualLocationUsecase {
+class FakeGetSavedManualLocationUsecase
+    implements GetSavedManualLocationUsecase {
   ManualLocation? manualLocation;
   @override
-  Future<Either<Failure, ManualLocation>> call() async {
-    if (manualLocation != null) return Right(manualLocation!);
-    return Left(Failure('No manual location'));
-  }
+  Future<Either<Failure, ManualLocation>> call() async => manualLocation == null
+      ? Left(Failure('No manual location'))
+      : Right(manualLocation!);
 }
 
-class FakeGetPrayerTimesUsecase implements GetPrayerTimesUsecase {
-  bool timingsByCityCalled = false;
-  bool timingsByCoordinatesCalled = false;
-
-  PrayerTimes dummyPrayerTimes = PrayerTimes(
-    timings: Timings(
-      fajr: '04:30',
-      sunrise: '06:00',
-      dhuhr: '12:00',
-      asr: '15:30',
-      maghrib: '18:00',
-      isha: '19:30',
-    ),
-    date: Date(
-      gregorian: '07-09-2026',
-      hijriDay: '25',
-      hijriMonthEn: 'Safar',
-      hijriMonthAr: 'صفر',
-      hijriYear: '1448',
-    ),
-    night: Night(midnight: '00:00', firstThird: '22:00', lastThird: '02:00'),
-  );
+class FakeGetManualLocationUsecase implements GetManualLocationUsecase {
+  ManualLocation? locationToReturn;
+  bool wasCalled = false;
 
   @override
-  Future<Either<Failure, PrayerTimes>> getTimingsByCity({
-    required String city,
-    required String state,
+  Future<Either<Failure, ManualLocation>> call({
     required String country,
-    required String date,
+    required String state,
+    String? city,
   }) async {
-    timingsByCityCalled = true;
-    return Right(dummyPrayerTimes);
+    wasCalled = true;
+    return locationToReturn == null
+        ? Left(Failure('Could not resolve manual location'))
+        : Right(locationToReturn!);
   }
 
   @override
-  Future<Either<Failure, PrayerTimes>> getTimingsByCoordinates({
-    required double latitude,
-    required double longitude,
-    required String date,
-  }) async {
-    timingsByCoordinatesCalled = true;
-    return Right(dummyPrayerTimes);
-  }
+  Future<List<ManualLocationCountry>> getCountries() async => [];
 
   @override
-  Future<Either<Failure, List<PrayerTimes>>> getCalendarByCity({
-    required String city,
-    required String state,
-    required String country,
-    required int month,
-    required int year,
-  }) async =>
-      Right([dummyPrayerTimes]);
+  Future<List<ManualLocationState>> getStates({required String countryCode}) async => [];
 
   @override
-  Future<Either<Failure, List<PrayerTimes>>> getCalendarByCoordinates({
-    required double latitude,
-    required double longitude,
-    required int month,
-    required int year,
-  }) async =>
-      Right([dummyPrayerTimes]);
+  Future<List<ManualLocationCity>> getCities({
+    required String countryCode,
+    required String stateCode,
+  }) async => [];
 }
 
-class FakeGetPrayerTimesWithCacheUsecase implements GetPrayerTimesWithCacheUsecase {
+class FakeGetPrayerTimesWithCacheUsecase
+    implements GetPrayerTimesWithCacheUsecase {
   bool cacheCallMade = false;
   bool replaceCacheCallMade = false;
-
-  PrayerTimes dummyPrayerTimes = PrayerTimes(
-    timings: Timings(
-      fajr: '04:30',
-      sunrise: '06:00',
-      dhuhr: '12:00',
-      asr: '15:30',
-      maghrib: '18:00',
-      isha: '19:30',
-    ),
-    date: Date(
-      gregorian: '07-09-2026',
-      hijriDay: '25',
-      hijriMonthEn: 'Safar',
-      hijriMonthAr: 'صفر',
-      hijriYear: '1448',
-    ),
-    night: Night(midnight: '00:00', firstThird: '22:00', lastThird: '02:00'),
+  final _timings = Timings(
+    fajr: '04:30',
+    sunrise: '06:00',
+    dhuhr: '12:00',
+    asr: '15:30',
+    maghrib: '18:00',
+    isha: '19:30',
   );
-
   @override
   Future<Either<Failure, List<PrayerTimes>>> call({
     required DateTime today,
@@ -162,7 +117,7 @@ class FakeGetPrayerTimesWithCacheUsecase implements GetPrayerTimesWithCacheUseca
     required double longitude,
   }) async {
     cacheCallMade = true;
-    return Right([dummyPrayerTimes]);
+    return Right(_days(today));
   }
 
   @override
@@ -172,81 +127,134 @@ class FakeGetPrayerTimesWithCacheUsecase implements GetPrayerTimesWithCacheUseca
     required double longitude,
   }) async {
     replaceCacheCallMade = true;
-    return Right([dummyPrayerTimes]);
+    return Right(_days(today));
   }
+
+  List<PrayerTimes> _days(DateTime today) => List.generate(15, (index) {
+    final date = today.add(Duration(days: index - 7));
+    return PrayerTimes(
+      timings: _timings,
+      date: Date(
+        gregorian:
+            '${date.day.toString().padLeft(2, '0')}-${date.month.toString().padLeft(2, '0')}-${date.year}',
+        hijriDay: '',
+        hijriMonthEn: '',
+        hijriMonthAr: '',
+        hijriYear: '',
+      ),
+      night: Night(midnight: '00:00', firstThird: '22:00', lastThird: '02:00'),
+    );
+  });
 }
 
 void main() {
   late PrayerTimesCubit cubit;
-  late FakeGetLocationModeUsecase fakeModeUsecase;
-  late FakeGetLocationUsecase fakeGetLocationUsecase;
-  late FakeGetSavedCurrentLocationUsecase fakeGetSavedCurrentLocationUsecase;
-  late FakeGetSavedManualLocationUsecase fakeGetSavedManualLocationUsecase;
-  late FakeGetPrayerTimesUsecase fakeGetPrayerTimesUsecase;
-  late FakeGetPrayerTimesWithCacheUsecase fakeGetPrayerTimesWithCacheUsecase;
-
+  late FakeGetLocationModeUsecase mode;
+  late FakeGetLocationUsecase freshLocation;
+  late FakeGetSavedCurrentLocationUsecase savedCurrent;
+  late FakeGetSavedManualLocationUsecase savedManual;
+  late FakeGetManualLocationUsecase resolveManual;
+  late FakeGetPrayerTimesWithCacheUsecase calculations;
   setUp(() {
-    fakeModeUsecase = FakeGetLocationModeUsecase();
-    fakeGetLocationUsecase = FakeGetLocationUsecase();
-    fakeGetSavedCurrentLocationUsecase = FakeGetSavedCurrentLocationUsecase();
-    fakeGetSavedManualLocationUsecase = FakeGetSavedManualLocationUsecase();
-    fakeGetPrayerTimesUsecase = FakeGetPrayerTimesUsecase();
-    fakeGetPrayerTimesWithCacheUsecase = FakeGetPrayerTimesWithCacheUsecase();
-
+    mode = FakeGetLocationModeUsecase();
+    freshLocation = FakeGetLocationUsecase();
+    savedCurrent = FakeGetSavedCurrentLocationUsecase();
+    savedManual = FakeGetSavedManualLocationUsecase();
+    resolveManual = FakeGetManualLocationUsecase();
+    calculations = FakeGetPrayerTimesWithCacheUsecase();
     cubit = PrayerTimesCubit(
-      fakeModeUsecase,
-      fakeGetLocationUsecase,
-      fakeGetSavedCurrentLocationUsecase,
-      fakeGetSavedManualLocationUsecase,
-      fakeGetPrayerTimesUsecase,
-      fakeGetPrayerTimesWithCacheUsecase,
+      mode,
+      freshLocation,
+      savedCurrent,
+      savedManual,
+      resolveManual,
+      calculations,
     );
   });
+  tearDown(() => cubit.close());
 
-  tearDown(() {
-    cubit.close();
+  test('manual mode calculates from stored coordinates without GPS', () async {
+    mode.mode = LocationMode.manual;
+    savedManual.manualLocation = DummyManualLocation(
+      country: 'Egypt',
+      state: 'Cairo',
+      city: 'Cairo',
+      latitude: 30.0444,
+      longitude: 31.2357,
+    );
+    await cubit.getPrayerTimes();
+    expect(freshLocation.wasCalled, isFalse);
+    expect(calculations.cacheCallMade, isTrue);
+    expect(cubit.state, isA<PrayerTimesSuccess>());
   });
 
-  test('Manual mode should never call GPS', () async {
-    fakeModeUsecase.mode = LocationMode.manual;
-    fakeGetSavedManualLocationUsecase.manualLocation = DummyManualLocation(
+  test('current mode calculates locally for unchanged coordinates', () async {
+    final loc = DummyLocation(
+      latitude: 30.04,
+      longitude: 31.23,
+      city: 'Cairo',
+      country: 'Egypt',
+    );
+    freshLocation.locationToReturn = loc;
+    savedCurrent.savedLocation = loc;
+    await cubit.getPrayerTimes();
+    expect(freshLocation.wasCalled, isTrue);
+    expect(calculations.cacheCallMade, isTrue);
+    expect(cubit.state, isA<PrayerTimesSuccess>());
+  });
+
+  test(
+    'current mode refreshes local calculations when coordinates change',
+    () async {
+      savedCurrent.savedLocation = DummyLocation(
+        latitude: 30.04,
+        longitude: 31.23,
+        city: 'Cairo',
+        country: 'Egypt',
+      );
+      freshLocation.locationToReturn = DummyLocation(
+        latitude: 31.20,
+        longitude: 29.91,
+        city: 'Alexandria',
+        country: 'Egypt',
+      );
+      await cubit.getPrayerTimes();
+      expect(freshLocation.wasCalled, isTrue);
+      expect(calculations.replaceCacheCallMade, isTrue);
+      expect(cubit.state, isA<PrayerTimesSuccess>());
+    },
+  );
+
+  test('missing manual coordinates reports incomplete location', () async {
+    mode.mode = LocationMode.manual;
+    savedManual.manualLocation = DummyManualLocation(
       country: 'Egypt',
       state: 'Cairo',
       city: 'Cairo',
     );
-
     await cubit.getPrayerTimes();
-
-    expect(fakeGetLocationUsecase.wasCalled, isFalse);
-    expect(fakeGetPrayerTimesUsecase.timingsByCityCalled, isTrue);
-    expect(cubit.state, isA<PrayerTimesSuccess>());
+    expect(cubit.state, isA<PrayerTimesFailure>());
   });
 
-  test('Current mode with unchanged location uses cache', () async {
-    fakeModeUsecase.mode = LocationMode.current;
-    final loc = DummyLocation(latitude: 30.04, longitude: 31.23, city: 'Cairo', country: 'Egypt');
-    fakeGetLocationUsecase.locationToReturn = loc;
-    fakeGetSavedCurrentLocationUsecase.savedLocation = loc;
+  test('legacy manual location is resolved and calculated locally', () async {
+    mode.mode = LocationMode.manual;
+    savedManual.manualLocation = DummyManualLocation(
+      country: 'Egypt',
+      state: 'Cairo',
+      city: 'Cairo',
+    );
+    resolveManual.locationToReturn = DummyManualLocation(
+      country: 'Egypt',
+      state: 'Cairo',
+      city: 'Cairo',
+      latitude: 30.0444,
+      longitude: 31.2357,
+    );
 
     await cubit.getPrayerTimes();
 
-    expect(fakeGetLocationUsecase.wasCalled, isTrue);
-    expect(fakeGetPrayerTimesWithCacheUsecase.cacheCallMade, isTrue);
-    expect(cubit.state, isA<PrayerTimesSuccess>());
-  });
-
-  test('Current mode with location change replaces cache', () async {
-    fakeModeUsecase.mode = LocationMode.current;
-    final oldLoc = DummyLocation(latitude: 30.04, longitude: 31.23, city: 'Cairo', country: 'Egypt');
-    final newLoc = DummyLocation(latitude: 31.20, longitude: 29.91, city: 'Alexandria', country: 'Egypt');
-
-    fakeGetSavedCurrentLocationUsecase.savedLocation = oldLoc;
-    fakeGetLocationUsecase.locationToReturn = newLoc;
-
-    await cubit.getPrayerTimes();
-
-    expect(fakeGetLocationUsecase.wasCalled, isTrue);
-    expect(fakeGetPrayerTimesWithCacheUsecase.replaceCacheCallMade, isTrue);
+    expect(resolveManual.wasCalled, isTrue);
+    expect(calculations.cacheCallMade, isTrue);
     expect(cubit.state, isA<PrayerTimesSuccess>());
   });
 }

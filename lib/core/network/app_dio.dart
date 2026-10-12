@@ -4,9 +4,8 @@ import 'package:nidaa_v2/core/network/dio_interceptors.dart';
 
 /// Builds and configures the single Dio instance used by the whole app.
 ///
-/// All cross-cutting networking behaviour (base URL, headers, timeouts,
-/// logging, authentication and retries) is defined here so that no feature
-/// needs to configure its own HTTP client.
+/// Shared networking behavior (headers, timeouts, logging, authentication,
+/// and retries) is defined here. Features set a base URL when they need one.
 class AppDio {
   const AppDio._();
 
@@ -17,7 +16,6 @@ class AppDio {
   static Dio create({AuthTokenProvider? tokenProvider}) {
     final dio = Dio(
       BaseOptions(
-        baseUrl: AppConfig.apiBaseUrl,
         connectTimeout: AppConfig.connectTimeout,
         sendTimeout: AppConfig.sendTimeout,
         receiveTimeout: AppConfig.receiveTimeout,
@@ -40,7 +38,7 @@ class AppDio {
         initialDelay: AppConfig.retryInitialDelay,
       ),
     ]);
-//this
+    //this
     return dio;
   }
 }

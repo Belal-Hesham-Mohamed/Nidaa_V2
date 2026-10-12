@@ -9,8 +9,19 @@ part 'manual_location_model.g.dart';
 
 @HiveType(typeId: 1)
 class ManualLocationModel extends ManualLocation {
-  ManualLocationModel({this.country, this.state, this.city})
-    : super(country: country, state: state, city: city);
+  ManualLocationModel({
+    this.country,
+    this.state,
+    this.city,
+    this.latitude,
+    this.longitude,
+  }) : super(
+         country: country,
+         state: state,
+         city: city,
+         latitude: latitude,
+         longitude: longitude,
+       );
 
   @override
   @HiveField(0)
@@ -23,4 +34,12 @@ class ManualLocationModel extends ManualLocation {
   @override
   @HiveField(1)
   final String? city;
+
+  @override
+  @HiveField(3)
+  final double? latitude;
+
+  @override
+  @HiveField(4)
+  final double? longitude;
 }
