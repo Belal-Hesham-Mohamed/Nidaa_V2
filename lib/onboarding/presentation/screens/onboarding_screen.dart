@@ -5,7 +5,7 @@ import 'package:nidaa_v2/generated/l10n.dart';
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key, required this.onComplete});
 
-  final VoidCallback onComplete;
+  final Future<void> Function() onComplete;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -50,19 +50,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _onNext() {
+  Future<void> _onNext() async {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 300),
         curve: Curves.easeInOut,
       );
     } else {
-      widget.onComplete();
+      await widget.onComplete();
     }
   }
 
-  void _onSkip() {
-    widget.onComplete();
+  Future<void> _onSkip() async {
+    await widget.onComplete();
   }
 
   String _localized(String key) {

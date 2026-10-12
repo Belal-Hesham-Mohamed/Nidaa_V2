@@ -70,7 +70,7 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _onOnboardingComplete() async {
+  Future<void> _onOnboardingComplete() async {
     await widget.settingsLocalDataSource.setOnboardingCompleted(true);
     if (!mounted) return;
     setState(() {

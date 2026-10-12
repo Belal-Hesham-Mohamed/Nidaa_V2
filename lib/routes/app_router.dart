@@ -21,7 +21,7 @@ class AppRouterDependencies {
   });
 
   final bool showOnboarding;
-  final VoidCallback onOnboardingComplete;
+  final Future<void> Function() onOnboardingComplete;
   final ThemeMode themeMode;
   final ValueChanged<ThemeMode> onThemeModeChanged;
   final Locale locale;
@@ -44,8 +44,14 @@ class AppRouter {
       case AppRoutes.home:
         return MaterialPageRoute<dynamic>(
           settings: settings,
-          builder: (_) => dependencies.showOnboarding
-              ? OnboardingScreen(onComplete: dependencies.onOnboardingComplete)
+          builder: (context) => dependencies.showOnboarding
+              ? OnboardingScreen(
+                  onComplete: () async {
+                    await dependencies.onOnboardingComplete();
+                    if (!context.mounted) return;
+                    Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+                  },
+                )
               : PrayerTimesScreen(
                   themeMode: dependencies.themeMode,
                   onThemeModeChanged: dependencies.onThemeModeChanged,
@@ -57,8 +63,13 @@ class AppRouter {
       case AppRoutes.onboarding:
         return MaterialPageRoute<dynamic>(
           settings: settings,
-          builder: (_) =>
-              OnboardingScreen(onComplete: dependencies.onOnboardingComplete),
+          builder: (context) => OnboardingScreen(
+            onComplete: () async {
+              await dependencies.onOnboardingComplete();
+              if (!context.mounted) return;
+              Navigator.of(context).pushReplacementNamed(AppRoutes.home);
+            },
+          ),
         );
 
       case AppRoutes.azkarCategory:
